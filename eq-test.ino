@@ -120,8 +120,8 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
             if ( pulseSideral >= 4.0 ) {
                 //cptAD = 0;
                 drvAD.step();
-                //if ( drvAD.getSens() )      drvAD.decStep();
-                //else                        drvAD.incStep();
+                if ( drvAD.getSens() )      drvAD.decStep();
+                else                        drvAD.incStep();
             }
         }
 	    pulseSideral += 1.0;												    //  incremente le var.compteur de temps
@@ -683,6 +683,7 @@ void decodeCmd( String s)  {
         printInfo();
         break;
     case 'd':
+        if (bJoy)   changeJoy();
         //i = getDegOrPas(&drvDC, &s[1]);
         i = deg2pas( &s[1] );
         if ( i != 0 )  {
@@ -703,6 +704,7 @@ void decodeCmd( String s)  {
         }
         break;
     case 'a':
+        if (bJoy)   changeJoy();
         i = deg2pas( &s[1] );
         if ( i != 0 )  {
             if ( bRelatif ) {
