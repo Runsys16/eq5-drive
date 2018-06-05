@@ -57,6 +57,7 @@ bool    bSuivi = false;
 bool    bSensSideral = false;
 float   vitSiderale = 0.0;
 float   pasSideral  = 0.0;
+float   pulseSideral = 0.0;
 //------------------------------------------------------------------------------
 int     signeJoyAD = 1;
 int     signeJoyDC = 1;
@@ -109,20 +110,21 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
 	else if ( bSuivi )   {
 	    drvAD.setSens(bSensSideral);
 	    if ( !drvAD.getStep() ) {
-	        if ( cptAD >= (pasSideral-4) ) {
-	            cptAD = 0;
+	        if ( pulseSideral >= (pasSideral) ) {
+	            pulseSideral = pulseSideral - pasSideral;
+	            //cptAD = 0;
 	            drvAD.step();
 	        }
         }
         else {
-            if ( cptAD >= 4 ) {
-                cptAD = 0;
+            if ( pulseSideral >= 4.0 ) {
+                //cptAD = 0;
                 drvAD.step();
-                if ( drvAD.getSens() )      drvAD.decStep();
-                else                        drvAD.incStep();
+                //if ( drvAD.getSens() )      drvAD.decStep();
+                //else                        drvAD.incStep();
             }
         }
-	    cptAD++;												    //  incremente le var.compteur de temps
+	    pulseSideral += 1.0;												    //  incremente le var.compteur de temps
 	}
 }
 //------------------------------------------------------------------------------
@@ -616,9 +618,14 @@ void printInfo()  {
     Serial.print( K_CONV, DEC );
     Serial.println("");
 
-    Serial.print("Ps sideral : ");
+    Serial.print("Pas sideral : ");
     Serial.print( pasSideral, DEC );
     Serial.println("");
+
+    Serial.print("Pulse sideral : ");
+    Serial.print( pulseSideral, DEC );
+    Serial.println("");
+
     Serial.print("Rotation Declinaison : " );
     if (drvDC.getRot())     Serial.println("normal");
     else                    Serial.println("inverse");
