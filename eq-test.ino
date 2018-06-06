@@ -79,13 +79,13 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
         if ( !drvDC.getStep() ) {
             if ( cptDC >= vitDC ) {
                 cptDC = 0;
-                drvDC.step();
+                drvDC.step(true);
             }
         }
         else {
             if ( cptDC >= 4 ) {
                 cptDC = 0;
-                drvDC.step();
+                drvDC.step(true);
             }
         }
         cptDC++;												    //  incremente le var.compteur de temps
@@ -95,13 +95,13 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
 	    if ( !drvAD.getStep() ) {
 	        if ( cptAD >= vitAD ) {
 	            cptAD = 0;
-	            drvAD.step();
+	            drvAD.step(true);
 	        }
         }
         else {
             if ( cptAD >= 4 ) {
                 cptAD = 0;
-                drvAD.step();
+                drvAD.step(true);
             }
         }
 	    cptAD++;												    //  incremente le var.compteur de temps
@@ -112,16 +112,12 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
 	    if ( !drvAD.getStep() ) {
 	        if ( pulseSideral >= (pasSideral) ) {
 	            pulseSideral = pulseSideral - pasSideral;
-	            //cptAD = 0;
-	            drvAD.step();
+	            drvAD.step(false);
 	        }
         }
         else {
             if ( pulseSideral >= 4.0 ) {
-                //cptAD = 0;
-                drvAD.step();
-                if ( drvAD.getSens() )      drvAD.decStep();
-                else                        drvAD.incStep();
+                drvAD.step(false);
             }
         }
 	    pulseSideral += 1.0;												    //  incremente le var.compteur de temps
@@ -327,81 +323,6 @@ void DCmoveTo( float deg )  {
         //countDC = drvDC.getCount() + DegtoPas(deg);
         vitDC = defVit;
 }
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void loopTestJoy()  {
-    int x = analogRead(pinJoyX);
-    int y = analogRead(pinJoyY);
-
-    x = x/100 - 5;
-    y = y/100 - 5;
-
-    if ( x>=0 )  {
-        drvDC.setSens(true);
-    }
-    else {
-        drvDC.setSens(false);
-        x = -x;
-    }
-
-    switch( x )   {
-        case 5:
-            drvDC.step(DELAY, NB);
-            break;
-        case 4:
-            drvDC.step((float)(DELAY*1.5), NB);
-            break;
-        case 3:
-            drvDC.step(DELAY*2, NB);
-            break;
-        case 2:
-            drvDC.step((float)(DELAY*2.5), NB);
-            break;
-        case 1:
-            drvDC.step(DELAY*3, NB);
-            break;
-    }
-
-    if ( y>=0 )  {
-        drvAD.setSens(false);
-    }
-    else {
-        drvAD.setSens(true);
-        y = -y;
-    }
-
-    
-    switch( y )   {
-    
-        case 5:
-            drvAD.step(DELAY, NB);
-            break;
-        case 4:
-            drvAD.step((float)(DELAY*1.5), NB);
-            break;
-        case 3:
-            drvAD.step((float)(DELAY*2), NB);
-            break;
-        case 2:
-            drvAD.step((float)(DELAY*2.5), NB);
-            break;
-        case 1:
-            drvAD.step(DELAY*3, NB);
-            break;
-    }
-    /*
-    float d = (float)DELAY;
-    d = (5.0-(float)y)*d;
-    
-    drvAD.step((int)d, NB);
-    */
-    /*
-    Serial.print( x, DC );
-    Serial.print( " " );
-    Serial.println( y, DC );
-    */
-}
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
@@ -424,7 +345,7 @@ int computeVit(int x)   {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void computeDC()    {
+void computeJoyDC()    {
     int x = analogRead(pinJoyX);
 
     x = signeJoyDC * (x-512);
@@ -446,7 +367,7 @@ void computeDC()    {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void computeAD()    {
+void computeJoyAD()    {
     int y = analogRead(pinJoyY);
     
     y = signeJoyAD * (y-512);
@@ -495,17 +416,8 @@ void cmdJoy()    {
 //
 //------------------------------------------------------------------------------
 void loopTestTimerDC()    {
-    computeDC();
-    computeAD();
-    
-    /*
-    //Serial.print( analogRead(pinJoyY), DEC );
-    Serial.print( "  " );
-    Serial.print( vitDC, DEC );
-    Serial.print( "  " );
-    Serial.print( vitAD, DEC );
-    Serial.print( "" );
-    */    
+    computeJoyDC();
+    computeJoyAD();
 }
 //-----------------------------------------------------------------------------
 //
@@ -937,8 +849,8 @@ void computePosition() {
     float t;
 
     if ( vitDC != -1 )    {
-         if (   ( drvDC.getSens() && drvDC.getCount() >= (countDC + countDCSideral) )
-             || (!drvDC.getSens() && drvDC.getCount() <= (countDC + countDCSideral) ) )
+         if (   ( drvDC.getSens() && (drvDC.getCount()+countDCSideral) >= (countDC) )
+             || (!drvDC.getSens() && (drvDC.getCount()+countDCSideral) <= (countDC) ) )
         {
             vitDC = -1;
             countDC = 0;
@@ -953,8 +865,8 @@ void computePosition() {
         }
     }
     if ( vitAD != -1 )    {
-        if (   ( drvAD.getSens() && drvAD.getCount() >= (countAD + countADSideral) )
-            || (!drvAD.getSens() && drvAD.getCount() <= (countAD + countADSideral) ) )
+        if (   ( drvAD.getSens() && (drvAD.getCount()+countADSideral) >= (countAD) )
+            || (!drvAD.getSens() && (drvAD.getCount()+countADSideral) <= (countAD) ) )
         {
             vitAD = -1;
             countAD = 0;

@@ -52,6 +52,7 @@ class A4988{
         // Front sur la broche step du driver
         // Modificaiton du compteur cpt
         void            step();
+        void            step(bool);
         void            step(int, int);
         bool            getStep()           { return bStep; }
         void            setStep(long l)     { cpt = l; }
