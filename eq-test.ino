@@ -155,9 +155,6 @@ void setupTimer3() {
 void setup() {
     Serial.begin(BAUDS);
 
-    pinMode( pinBut0,  INPUT_PULLUP );
-    pinMode( pinBut1,  INPUT_PULLUP );
-
     pinMode( pinBtn,   INPUT_PULLUP );
 
     drvDC.setup();
