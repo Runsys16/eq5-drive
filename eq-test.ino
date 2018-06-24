@@ -1,6 +1,7 @@
 //------------------------------------------------------------------------------
 //                               EQ-TEST.INO
 //------------------------------------------------------------------------------
+#define PROTO_ARDUINO   1
 #include "port.h"
 #include "A4988.h"
 //------------------------------------------------------------------------------
@@ -749,8 +750,8 @@ void decodeCmd( String s)  {
     case 'p':
         bPrintPos = !bPrintPos;
         Serial.print("PrintPos : ");
-        if ( bPrintPos )       Serial.println( "OUI" );
-        else                Serial.println( "NON" );
+        if ( bPrintPos )        Serial.println( "OUI" );
+        else                    Serial.println( "NON" );
         break;
     case 's':
         tt = s[1];
