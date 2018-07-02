@@ -12,6 +12,8 @@
 #define TIMER3          16000
 #define TIMER3          1600        //0.1ms
 //------------------------------------------------------------------------------
+#define PAS_CHERCHE     1500
+//------------------------------------------------------------------------------
 //
 // Mesure le 7/5/2018
 //---------------------
@@ -62,6 +64,15 @@ float   pulseSideral = 0.0;
 //------------------------------------------------------------------------------
 int     signeJoyAD = 1;
 int     signeJoyDC = 1;
+//------------------------------------------------------------------------------
+bool    bCherche=false;
+int     uCherche=0;
+int     nbCherche=PAS_CHERCHE;
+
+//------------------------------------------------------------------------------
+void chercheSuivant();
+//------------------------------------------------------------------------------
+
 //------------------------------------------------------------------------------
 //	Routine d'interruption
 //	----------------------
@@ -689,6 +700,7 @@ void decodeCmd( String s)  {
         vitDC = -1;
         countAD = 0;
         countDC = 0;
+        bCherche = false;
         Serial.println("--STOP--");
         break;
     case 'i' :
@@ -783,6 +795,12 @@ void decodeCmd( String s)  {
         Serial.print("Suivi rotation terre : ");
         if ( bSuivi )       Serial.println( "OUI" );
         else                Serial.println( "NON" );
+        break;
+    case 'C':
+        bCherche = true;
+        uCherche = -1;
+        nbCherche = 0;
+        chercheSuivant();
         break;
     }
 }
@@ -882,9 +900,46 @@ void computePosition() {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+void chercheSuivant()   {
+    if ( vitDC!=-1 || vitAD!=-1 )       return;
+    
+    uCherche++;
+    uCherche = uCherche%4;
+    
+    nbCherche += PAS_CHERCHE;
+
+    switch( uCherche )  {
+        case 0:
+            vitAD = defVit;
+            countAD = drvAD.getCount() + nbCherche;
+            setSens( &drvAD, (countAD - drvAD.getCount()) );
+            break;
+        case 1:
+            vitDC = defVit;
+            countDC = drvDC.getCount() + nbCherche;
+            setSens( &drvDC, (countDC - drvDC.getCount()) );
+            break;
+        case 2:
+            vitAD = defVit;
+            countAD = drvAD.getCount() - nbCherche;
+            setSens( &drvAD, (countAD - drvAD.getCount()) );
+            break;
+        case 3:
+            vitDC = defVit;
+            countDC = drvDC.getCount() - nbCherche;
+            setSens( &drvDC, (countDC - drvDC.getCount()) );
+            break;
+    }
+    Serial.println( uCherche, DEC );
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
 //long c0 = 0;
 void loop() {
     if ( Serial.available() )       readCommand();
+    
+    if ( bCherche )                 chercheSuivant();
 
     if ( bJoy )                     loopTestTimerDC();
     else                            computePosition();
