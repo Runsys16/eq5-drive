@@ -22,6 +22,29 @@
 // dec1=30°22'19.3"   dec2=38°18'31.1"   delta-dec = 7.936611°
 //
 //------------------------------------------------------------------------------
+// TODO:
+//  Lors du suivi sideral il y a un décalage dans le temps
+//  ------------------------------------------------------
+// Mesure du 6/8/2018 à 0h46m (Aigre le galiment)
+// ---------------------
+//  Décalage angulaire mesuré par aladin via la serie de photos de la comete 21P/Giacobini-Zinner  
+//  ~/Documents/astronomie/capture/2018-08-06/21P/
+//
+//
+//  1)
+//                        ------------
+//    decalage mesuré de | 29.25" arc |
+//                        ------------
+//
+//  2)
+//    debut : 0h07m46s
+//    fin   : 0h12m47s
+//                                 ------
+//    soit total du temps 5m 1s = | 301s |
+//                                 ------
+//  3)
+//    ve = 0.09717608 "/s
+//------------------------------------------------------------------------------
 //float   convert =     400000.0;
 //#define K_CONV          (1.0/86.5*convert)
 
