@@ -1,0 +1,9 @@
+Vitesse mesurée par aladin via la serie de photos de la comete
+21P/Giacobini-Zinner  le 6-8-2018 vers 0h46m (Aigre)
+
+decalage de 29.25" arc
+  debut : 0h07m46s
+  fin   : 0h12m47s
+  
+soit total 5m1s = 301s 
+ ve = 0.09717608 "/ s

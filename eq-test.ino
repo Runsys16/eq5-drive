@@ -46,7 +46,7 @@ int     vitDC = -1;
 long    cptAD = 0;
 int     vitAD = -1;
 //------------------------------------------------------------------------------
-bool    bPrintPos = false;
+bool    bPrintPos = true;
 bool    bJoy = false;
 bool    bOk = false;
 bool    bRelatif = false;
