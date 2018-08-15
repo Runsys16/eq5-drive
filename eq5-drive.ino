@@ -47,12 +47,14 @@
 //------------------------------------------------------------------------------
 //float   convert =     400000.0;
 //#define K_CONV          (1.0/86.5*convert)
+#define DELTA_PAS       36777.0
+#define DELTA_DEG       7.936611
 
-float   convert =       36777.0;
-#define K_CONV          (1.0/7.936611*convert)
+float   convert =       DELTA_PAS;
+#define K_CONV          (convert/DELTA_DEG)
 
-#define DEG2PAS(d)      (d*K_CONV)
-#define PAS2DEG(d)      (d/(K_CONV))
+#define DEG2PAS(__d)    (__d*K_CONV)
+#define PAS2DEG(__p)    (__p/(K_CONV))
 #define BAUDS           115200
 //-----------------------------------------------------------------------------
 //
@@ -69,7 +71,7 @@ int     vitDC = -1;
 long    cptAD = 0;
 int     vitAD = -1;
 //------------------------------------------------------------------------------
-bool    bPrintPos = true;
+bool    bPrintPos = false   ;
 bool    bJoy = false;
 bool    bOk = false;
 bool    bRelatif = false;
@@ -216,8 +218,9 @@ void setup() {
     drvAD.normalRot();
     
     
-    vitSiderale = DEG2PAS(360.0/86164.1);
-    pasSideral  = 10000.0 / vitSiderale;
+    vitSiderale = (360.0/86164.1)-2*(0.09717608/3600);
+    pasSideral  = 10000.0 / (DEG2PAS(vitSiderale));
+  
     //pasSideral = 10;
 }
 //------------------------------------------------------------------------------
@@ -530,6 +533,16 @@ void printRotJoyDC()  {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+void printInfoVitsseSiderale()  {
+    Serial.print("V. siderale : " );
+    Serial.print( vitSiderale, DEC );
+    Serial.print(" pas sideral : " );
+    Serial.print( pasSideral, DEC );
+    Serial.println("");
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
 void printInfo()  {
     long cad, cdc;
 
@@ -579,6 +592,8 @@ void printInfo()  {
 
     printRotJoyAD();
     printRotJoyDC();
+
+    printInfoVitsseSiderale();
 }
 //-----------------------------------------------------------------------------
 //
