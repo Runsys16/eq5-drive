@@ -218,7 +218,7 @@ void setup() {
     drvAD.normalRot();
     
     
-    vitSiderale = (360.0/86164.1)-2*(0.09717608/3600);
+    vitSiderale = (360.0/86164.1)-1.3*(0.09717608/3600);
     pasSideral  = 10000.0 / (DEG2PAS(vitSiderale));
   
     //pasSideral = 10;
@@ -533,6 +533,34 @@ void printRotJoyDC()  {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+void printInfoTime()  {
+    float f, c;
+    float fh, fm, fs;
+    int   i, h, m, s;
+    Serial.print("Temps de fonctionnement : " );
+    c = cptMili / 10000.0 / 3600.0;
+    fh = c;
+    h = fh;
+    Serial.print( h, DEC );
+    Serial.print("h " );
+
+    c = fh - (float)h;
+    fm = c * 60.0;
+    m = fm;
+    Serial.print( m, DEC );
+    Serial.print("m " );
+
+    c = fm - (float)m;
+    fs = c * 60.0;
+    s = fs;
+    Serial.print( s, DEC );
+    Serial.print("s" );
+
+    Serial.println("");
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
 void printInfoVitsseSiderale()  {
     Serial.print("V. siderale : " );
     Serial.print( vitSiderale, DEC );
@@ -594,6 +622,7 @@ void printInfo()  {
     printRotJoyDC();
 
     printInfoVitsseSiderale();
+    printInfoTime();
 }
 //-----------------------------------------------------------------------------
 //
@@ -877,6 +906,8 @@ void loopBtn() {
     if (val == LOW)     bOk = true;
 }
 //-----------------------------------------------------------------------------
+//
+// Envoi la position de la monture 5x par seconde
 //
 //------------------------------------------------------------------------------
 long cptPosition = 0;
