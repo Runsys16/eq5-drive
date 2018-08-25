@@ -1,117 +1,11 @@
 //------------------------------------------------------------------------------
 //                               EQ-TEST.INO
 //------------------------------------------------------------------------------
-#define PROTO_ARDUINO   1
-#include "port.h"
-#include "A4988.h"
+#ifndef EQ5_DRIVE_CPP
+#define EQ5_DRIVE_CPP
+#endif
 //------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-#define DELAY           400
-#define NB              100
-#define TIMER3          16000
-#define TIMER3          1600        //0.1ms
-//------------------------------------------------------------------------------
-#define PAS_CHERCHE     1500
-//------------------------------------------------------------------------------
-//
-// Mesure le 7/5/2018
-//---------------------
-// rho-bouvier et gama-bouvier
-//   p1=199667          p2=236444        delta-pas = 36777
-// dec1=30°22'19.3"   dec2=38°18'31.1"   delta-dec = 7.936611°
-//
-//------------------------------------------------------------------------------
-// TODO:
-//  Lors du suivi sideral il y a un décalage dans le temps
-//  ------------------------------------------------------
-// Mesure du 6/8/2018 à 0h46m (Aigre le galiment)
-// ---------------------
-//  Décalage angulaire mesuré par aladin via la serie de photos de la comete 21P/Giacobini-Zinner  
-//  ~/Documents/astronomie/capture/2018-08-06/21P/
-//
-//
-//  1)
-//                        ------------
-//    decalage mesuré de | 29.25" arc |
-//                        ------------
-//
-//  2)
-//    debut : 0h07m46s
-//    fin   : 0h12m47s
-//                                 ------
-//    soit total du temps 5m 1s = | 301s |
-//                                 ------
-//  3)
-//    ve = 0.09717608 "/s
-//------------------------------------------------------------------------------
-//float   convert =     400000.0;
-//#define K_CONV          (1.0/86.5*convert)
-
-#define DELTA_PAS       36777.0
-//#define DELTA_PAS       36377.0     // correction manuelle
-#define DELTA_DEG       7.936611
-
-float   convert =       DELTA_PAS;
-#define K_CONV          (convert/DELTA_DEG)
-
-#define DEG2PAS(__d)    (__d*K_CONV)
-#define PAS2DEG(__p)    (__p/(K_CONV))
-#define BAUDS           115200
-//-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-A4988   drvDC( pinDC_MS1, pinDC_MS2, pinDC_MS3, pinDC_EN, pinDC_RST, pinDC_STEP, pinDC_DIR );
-A4988   drvAD( pinAD_MS1, pinAD_MS2, pinAD_MS3, pinAD_EN, pinAD_RST, pinAD_STEP, pinAD_DIR );
-//------------------------------------------------------------------------------
-long    cptMili = 0;
-long    btnMili = 0;
-long    cptStart = 0;
-//------------------------------------------------------------------------------
-long    cptDC = 0;
-int     vitDC = -1;
-long    cptAD = 0;
-int     vitAD = -1;
-//------------------------------------------------------------------------------
-bool    bPrintPos = false   ;
-bool    bJoy = false;
-bool    bOk = false;
-bool    bRelatif = false;
-long    countAD = 0;
-long    countDC = 0;
-long    countADSideral = 0;
-long    countDCSideral = 0;
-int     defVit = 6;
-float   zoom = 1.0;
-//------------------------------------------------------------------------------
-bool    bSuivi = false;
-bool    bSensSideral = false;
-float   vitSiderale = 0.0;
-float   pasSideral  = 0.0;
-float   pulseSideral = 0.0;
-//------------------------------------------------------------------------------
-int     signeJoyAD = 1;
-int     signeJoyDC = 1;
-//------------------------------------------------------------------------------
-bool    bCherche=false;
-int     uCherche=0;
-int     nbCherche=PAS_CHERCHE;
-//------------------------------------------------------------------------------
-bool    bRattrapeJeu=false;
-//------------------------------------------------------------------------------
-#define JOY_NONE      1
-#define JOY_DC        2
-#define JOY_AD        3
-int     lastJoy=JOY_NONE;
-//------------------------------------------------------------------------------
-bool    bRattrapage = false;
-int     iRat = 0;
-int     currentRat = 0;
-float   pulseRat = 0.0;
-//------------------------------------------------------------------------------
-void chercheSuivant();
-//------------------------------------------------------------------------------
-
+#include "eq5-drive.h"
 //------------------------------------------------------------------------------
 //	Routine d'interruption
 //	----------------------
@@ -127,91 +21,43 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
     cptMili++;
     if ( cptMili < 0 )      cptMili = 0;    
 
-	if ( vitDC != -1 || vitAD != -1 ) {
-	    if ( !bJoy )    {
-	        pulseRat += 1.0;												    //  incremente le var.compteur de temps
-            if ( pulseRat >= (pasSideral) ) {
-                pulseRat = pulseRat - pasSideral;
-                iRat++;
-            }
-	    }
-	}
+    Evenement*  evt;
+    evt = listEvenement.getCurrent();
+    
+    if ( evt == NULL) return;
 
 
-	if ( vitDC != -1 ) {
+	if ( evt->getVitDC() != -1 ) {
         if ( !drvDC.getStep() ) {
-            if ( cptDC >= vitDC ) {
+            if ( cptDC >= (evt->getVitDC()-4) ) {
                 cptDC = 0;
-                drvDC.step(true);
+                drvDC.step(evt->getDecompte());
             }
         }
         else {
             if ( cptDC >= 4 ) {
                 cptDC = 0;
-                drvDC.step(true);
+                drvDC.step(evt->getDecompte());
             }
         }
         cptDC++;												    //  incremente le var.compteur de temps
     }
 
-	if ( vitAD != -1 ) {
+	if ( evt->getVitAD() != -1 ) {
 	    if ( !drvAD.getStep() ) {
-	        if ( cptAD >= vitAD ) {
+	        if ( cptAD >= (evt->getVitAD()-4) ) {
 	            cptAD = 0;
-	            drvAD.step(true);
+	            drvAD.step(evt->getDecompte());
 	        }
         }
         else {
             if ( cptAD >= 4 ) {
                 cptAD = 0;
-                drvAD.step(true);
+                drvAD.step(evt->getDecompte());
             }
         }
 	    cptAD++;												    //  incremente le var.compteur de temps
 	}
-	//   Suivi rotation la terre
-	else if ( bSuivi || bRattrapage )   {
-	    //-----------------------------------
-	    if ( bRattrapage )   {
-	        drvAD.setSens(bSensSideral);
-	        if ( !drvAD.getStep() ) {
-	            if ( pulseRat >= (defVit+4) ) {
-	                pulseRat = 0;
-	                drvAD.step(false);
-	                currentRat++;
-	                if ( currentRat >= iRat )   {
-	                    currentRat = 0;
-	                    iRat = 0;
-	                    bRattrapage = false;
-	                }
-	            }
-            }
-            else {
-                if ( pulseRat >= 4.0 ) {
-                    drvAD.step(false);
-                }
-            }
-	        pulseRat++;												    //  incremente le var.compteur de temps
-	    }
-	    //-----------------------------------
-	    else    {
-	        drvAD.setSens(bSensSideral);
-	        if ( !drvAD.getStep() ) {
-	            if ( pulseSideral >= (pasSideral) ) {
-	                pulseSideral = pulseSideral - pasSideral;
-	                drvAD.step(false);
-	            }
-            }
-            else {
-                if ( pulseSideral >= 4.0 ) {
-                    drvAD.step(false);
-                }
-            }
-	        pulseSideral += 1.0;												    //  incremente le var.compteur de temps
-        }
-	    //-----------------------------------
-	}
-
 }
 //------------------------------------------------------------------------------
 //	Initialisation du TIMER 3
@@ -274,9 +120,14 @@ void setup() {
     
     
     vitSiderale = (360.0/86164.1)-1.9*(0.09717608/3600);
-    pasSideral  = 10000.0 / (DEG2PAS(vitSiderale));
+    vitSiderale = 360.0/86164.1;
+    pasSideral  = (10000.0/DEG2PAS(vitSiderale));
+    
+    // Test sur stellarium pasSideral = 2212
+    
+    //pasSideral = 10.0 * pasSideral;
   
-    //pasSideral = 10;
+    //pasSideral = 2212;
 }
 //------------------------------------------------------------------------------
 //
@@ -406,30 +257,10 @@ char * pasToDc( float f )   {
     
     return s;
 }
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void DCmoveTo( float deg )  {
-        //countDC = drvDC.getCount() + DegtoPas(deg);
-        vitDC = defVit;
-}
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
 int computeVit(int x)   {
-    int vit;
-    if ( x <20 )                 vit = -1;
-    else if ( x <50 )            vit = 200;
-    else if ( x <100 )           vit = 94;
-    else if ( x <150 )           vit = 57;
-    else if ( x <200 )           vit = 39;
-    else if ( x <250 )           vit = 28;
-    else if ( x <300 )           vit = 20;
-    else if ( x <350 )           vit = 15;
-    else if ( x <400 )           vit = 11;
-    else if ( x <450 )           vit = 8;
-    else if ( x <500 )           vit = 7;
-    else if ( x <550 )           vit = 6;
     float f = 550-x;
     float v = 10*(exp((f)/128)-exp(0.0));
     if      (v >500.0 )             v = -1.0;
@@ -452,11 +283,6 @@ int computeVit(int x)   {
 //
 //------------------------------------------------------------------------------
 void rattrapeJeuDC(int sign)    {
-/*
-    Serial.print("Rattrapage de jeu ");
-    if ( sign == 1 )        Serial.println("true");
-    else                    Serial.println("false");
-    */
     int i = sign * 220;
     countDC = drvDC.getCount() + i;
     bRattrapeJeu = true;
@@ -467,11 +293,6 @@ void rattrapeJeuDC(int sign)    {
 //
 //------------------------------------------------------------------------------
 void rattrapeJeuAD(int sign)    {
-    /*
-    Serial.print("Rattrapage de jeu ");
-    if ( sign == 1 )        Serial.println("true");
-    else                    Serial.println("false");
-    */
     int i = sign * 320;
     countAD = drvAD.getCount() + i;
     bRattrapeJeu = true;
@@ -481,8 +302,6 @@ void rattrapeJeuAD(int sign)    {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-bool bOldSensDC = true;
-bool bOldSensAD = true;
 void computeJoyDC(int x)    {
     bool bSens;
     lastJoy = JOY_DC;
@@ -555,45 +374,13 @@ void computeJoyAD(int y)    {
 }
 //-----------------------------------------------------------------------------
 //
-// Aller retour en Y en moins de 200ms
-//
 //------------------------------------------------------------------------------
-long startMili = -1;
-void cmdJoy()    {
-    int y = analogRead(pinJoyY);
-    if ( startMili == -1 && y>1000 )    {
-        startMili = cptMili;
-    }
-
-    if ( startMili != -1 && y<20 )    {
-        startMili = cptMili - startMili;
-        //Serial.print( cptMili - startMili, DEC );
-        //Serial.println( "" );
-        if ( startMili < 1800 )       {
-            bJoy = !bJoy;
-            Serial.println( "cmdJoy() ..." );
-        }    
-        startMili = -1;
-    }
-    //Serial.println( y, DEC );
-}
-//-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void loopTestTimerDC()    {
+void loopJostick()    {
     int x = analogRead(pinJoyX);
     int y = analogRead(pinJoyY);
     
-    /*
-        Serial.print( "JoyXY x=" );
-        Serial.print( x, DEC );
-        Serial.print( " y=" );
-        Serial.print( y, DEC );
-        Serial.println( "" );
-    */
-    
-    if ( x<(512-25) || x>(512+25) )     computeJoyDC(x);
-    if ( y<(512-25) || y>(512+25) )     computeJoyAD(y);
+    if ( x<(512-JOY_ZONE_NEUTRE) || x>(512+JOY_ZONE_NEUTRE) )     computeJoyDC(x);
+    if ( y<(512-JOY_ZONE_NEUTRE) || y>(512+JOY_ZONE_NEUTRE) )     computeJoyAD(y);
 }
 //-----------------------------------------------------------------------------
 //
@@ -720,14 +507,15 @@ void printInfoTime()  {
 void printInfoVitsseSiderale()  {
     Serial.print("V. siderale : " );
     Serial.print( vitSiderale, DEC );
-    Serial.print("°/s,   Pas sideral : " );
+    Serial.print(" °/s,   Pas sideral : " );
     Serial.print( pasSideral, DEC );
+    Serial.print(" tip/pas" );
     Serial.println("");
 }
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void printInfo()  {
+void printInfoPosition()  {
     long cad, cdc;
     long dest_ad, dest_dc;
 
@@ -747,10 +535,10 @@ void printInfo()  {
     Serial.print( ") => " );
     Serial.print( " dest = " );
     Serial.print( dest_ad, DEC );
+    Serial.print( pasToDc(cdc) );
     Serial.println("");
 
     Serial.print( "Declin : " );
-    Serial.print( pasToDc(cdc) );
     Serial.print( " , " );
     Serial.print( cdc, DEC );
     Serial.print( " (sens " );
@@ -760,12 +548,44 @@ void printInfo()  {
     Serial.print( " dest = " );
     Serial.print( dest_dc, DEC );
     Serial.println( "" );
+    
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void printInfoEvt()  {
+    Evenement* pEvt;
+
+    Serial.print( "Nb Evenement : " );
+    Serial.print( listEvenement.getNb(), DEC );
+    Serial.println( "" );
+    
+    pEvt = listEvenement.getCurrent();
+    while( pEvt != NULL )   {
+        Serial.print("AD : ");
+        Serial.print(pEvt->getPasAD(), DEC );
+        Serial.print(", DEC : ");
+        Serial.print(pEvt->getPasDC(), DEC );
+        Serial.println("");
+        
+        pEvt = pEvt->suivant;
+    }
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void printInfo()  {
+    printInfoPosition();
 
     Serial.println("==================================");
-    Serial.print("Convertion (pas/°) : " );
-    Serial.print( convert, DEC );
-    Serial.print("   pas/° ");
-    Serial.print( K_CONV, DEC );
+    printInfoEvt();
+
+    Serial.println("==================================");
+    Serial.print("Convertion : " );
+    Serial.print( DEG2PAS(1), DEC );
+    Serial.print( " pas/°  ,  " );
+    Serial.print( PAS2DEG(1)*3600.0, DEC );
+    Serial.print(" arcsec/pas ");
     Serial.println("");
 
     printInfoVitsseSiderale();
@@ -849,7 +669,241 @@ void changeMode()  {
     else                    Serial.println("absolu !");
 }
 //-----------------------------------------------------------------------------
-// 400000 pas = 86.5 deg
+//
+//------------------------------------------------------------------------------
+void loopBtn() {
+    int val;
+
+    btnMili++;
+    if ( btnMili < 100 )      return;
+    
+    btnMili = 0;
+    val = digitalRead( pinBtn );
+    if ( (val == HIGH) && bOk)   {
+        changeJoy();
+        if ( bJoy )         bStop = true;
+        bOk = false;
+    }
+    if (val == LOW)     bOk = true;
+}
+//-----------------------------------------------------------------------------
+//
+// Envoi la position de la monture 5x par seconde
+//
+//------------------------------------------------------------------------------
+void printPosition(void)    {
+    //if ( vitAD == -1 && vitDC == -1 )       return;
+
+    if ( cptPosition < cptMili )    {
+        long cad, cdc;
+        cptPosition = cptMili + 2000.0;//10000.0;
+        cad = drvAD.getCount();
+        cdc = drvDC.getCount();
+        Serial.print("-a");
+        Serial.println( PAS2DEG(cad), DEC );
+        Serial.print("-d");
+        Serial.println( PAS2DEG(cdc), DEC );
+    }
+
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void sensEvenement(Evenement * pEvt) {
+    if (pEvt==NULL )  return;
+
+    if (pEvt->getVitAD() != -1)             setSens(&drvAD, pEvt->getPasAD()-drvAD.getCount());        
+    if (pEvt->getVitDC() != -1)             setSens(&drvDC, pEvt->getPasDC()-drvDC.getCount());
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void computePositionSuivant() {
+    Evenement *     pEvt = listEvenement.getCurrent();
+    
+    listEvenement.sup(pEvt);
+    pEvt = listEvenement.getCurrent();
+    
+    sensEvenement(pEvt);
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void printGOTOend(Evenement* pEvt) {
+    if (!pEvt->getPrintGOTO())       return;
+    float t;
+    
+    t = (cptMili - cptStart)/10000.0;
+    
+    Serial.print("GOTO OK in ");
+    Serial.print( t, DEC);
+    Serial.println("s ");
+
+    cptStart = cptMili;
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void computePosition() {
+
+    Evenement *     pEvt = listEvenement.getCurrent();
+    
+    if ( pEvt == NULL)      {
+        bStop = true;
+        return;
+    }
+    
+    if (bStop)   {
+        sensEvenement(pEvt);
+    }
+
+    if ( pEvt->getVitDC() != -1 )    {
+        bStop = false;
+
+         if (   ( drvDC.getSens() && (drvDC.getCount()+countDCSideral) >= (pEvt->getPasDC()) )
+             || (!drvDC.getSens() && (drvDC.getCount()+countDCSideral) <= (pEvt->getPasDC()) ) )
+        {
+            pEvt->setVitDC(-1);
+            
+            if ( (pEvt->getVitAD() == -1) )      {
+                printGOTOend(pEvt);
+                computePositionSuivant();
+            }
+        }
+    }
+    if ( pEvt->getVitAD() != -1 )    {
+        bStop = false;
+
+        if (   ( drvAD.getSens() && (drvAD.getCount()+countADSideral) >= (pEvt->getPasAD()) )
+            || (!drvAD.getSens() && (drvAD.getCount()+countADSideral) <= (pEvt->getPasAD()) ) )
+        {
+            pEvt->setVitAD(-1);
+
+            if ( (pEvt->getVitDC() == -1) )      {
+                printGOTOend(pEvt);
+                computePositionSuivant();
+            }
+            
+        }
+    }
+}
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void printSuivant( long i, long count)   {
+        Serial.print("Evt n° ");
+        Serial.print(i, DEC);
+        Serial.print("  count : ");
+        Serial.print(count, DEC);
+        Serial.println("");
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void chercheSuivant(int nb)   {
+    long ca;
+    long cd;
+    long PAS = 250;
+    long sign = 1;
+    Evenement* pEvt;
+    volatile long count;
+    int  vit;
+    
+    ca = drvAD.getCount();
+    cd = drvDC.getCount();
+    
+    vit = defVit * 20;
+    
+    if (nb< 2 )         nb = 2;
+    
+    nb++;
+        
+    for( long i=1; i<nb; i++ )    {
+        count = sign * i * PAS;
+
+        ca += count;
+        setSens( &drvAD, count );
+        pEvt = new Evenement(ca,0, vit, -1, true);        
+        listEvenement.addend(pEvt);
+        //printSuivant(i*2-1, ca);
+
+        cd += count;
+        setSens( &drvDC, count );
+        pEvt = new Evenement(0, cd, -1, vit, true);        
+        listEvenement.addend(pEvt);
+        //printSuivant(i*2, cd);
+
+        sign = sign * -1;
+    }
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void computeSuivi()  {
+    if ( pulseSideral >= pasSideral )   {
+        pulseSideral = pulseSideral - pasSideral;
+        
+        long countAD = drvAD.getCount() + 1;
+        Evenement* pEvt = new Evenement(countAD, 0, defVit, -1, true, false);
+        //Serial.println(countAD, DEC);
+        listEvenement.addfirst(pEvt);
+        sensEvenement(pEvt);
+    }
+    long avance = 0;
+    if ( cptMiliSuivi!=0)   {
+        avance = cptMili - cptMiliSuivi;
+        cptMiliSuivi = cptMili;
+    }
+    else    {
+        cptMiliSuivi = cptMili;
+    }
+    pulseSideral += avance;
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void computeCible( String s, A4988 * pDrv )   {
+    long i;
+    
+    if (bJoy)   changeJoy();
+    
+    i = deg2pas( s );
+    
+    if ( i != 0 )  {
+        Evenement * pEvt;
+        pEvt = listEvenement.getLast();
+        if ( !bCmdMultiple )    {
+            pEvt = new Evenement();
+            listEvenement.addend(pEvt);
+        }
+
+        long currentPas, ciblePas;
+        currentPas = pDrv->getCount();
+        
+        if ( bRelatif )         ciblePas = i + currentPas;
+        else                    ciblePas = i;
+
+        if ( pDrv == &drvAD )   {
+            pEvt->setPasAD( ciblePas );
+            pEvt->setVitAD( defVit );
+        }
+        else if ( pDrv == &drvDC )  {
+            pEvt->setPasDC( ciblePas );
+            pEvt->setVitDC( defVit );
+        }
+
+        cptStart = cptMili;
+        
+        Serial.print("Asc. droite : ");
+        Serial.print(ciblePas, DEC );
+        Serial.print( ", ");
+        Serial.println( PAS2DEG(ciblePas), DEC );
+    }
+}
+//-----------------------------------------------------------------------------
+//
 //------------------------------------------------------------------------------
 void decodeCmd( String s)  {
     char cmd = s[0];
@@ -865,95 +919,11 @@ void decodeCmd( String s)  {
         printInfo();
         break;
     case 'd':
-        if (bJoy)   changeJoy();
-        //i = getDegOrPas(&drvDC, &s[1]);
-        i = deg2pas( &s[1] );
-        if ( i != 0 )  {
-            if ( bRelatif ) {
-                countDC = drvDC.getCount() + i;
-                setSens( &drvDC, i );
-            }
-            else    {
-                countDC = i;
-                setSens( &drvDC, (i - drvDC.getCount()) );
-            }
-            vitDC = defVit;
-            cptStart = cptMili;
-            Serial.print("Declinaison : ");
-            Serial.print(countDC, DEC );
-            Serial.print( ", ");
-            Serial.println( PAS2DEG(countDC), DEC );
-            iRat = 0;
-            pulseRat = 0.0;
-        }
+        computeCible( &s[1], &drvDC );
         break;
     case 'a':
-        if (bJoy)   changeJoy();
-        i = deg2pas( &s[1] );
-        if ( i != 0 )  {
-            if ( bRelatif ) {
-                countAD = drvAD.getCount() + i;
-                setSens( &drvAD, i );
-            }
-            else    {
-                countAD = i;
-                setSens( &drvAD, (i - drvAD.getCount()) );
-            }
-            vitAD = defVit;
-            cptStart = cptMili;
-            Serial.print("Asc. droite : ");
-            Serial.print(countAD, DEC );
-            Serial.print( ", ");
-            Serial.println( PAS2DEG(countAD), DEC );
-            iRat = 0;
-            pulseRat = 0.0;
-        }
+        computeCible( &s[1], &drvAD );
         break;
-    case 'A':
-        i = ad2pas( &s[1]);
-        Serial.println( i, DEC );
-        f = ad2deg( &s[1]);
-        Serial.println( f, DEC );
-        if ( bRelatif ) {
-            countAD = drvAD.getCount() + i;
-            setSens( &drvAD, i );
-        }
-        else    {
-            countAD = i;
-            setSens( &drvAD, (i - drvAD.getCount()) );
-        }
-        vitAD = defVit;
-        cptStart = cptMili;
-        break;
-    case 'D':
-        i = dc2pas( &s[1]);
-        Serial.println( i, DEC );
-        f = dc2deg( &s[1]);
-        Serial.println( f, DEC );
-        if ( bRelatif ) {
-            countDC = drvDC.getCount() + i;
-            setSens( &drvDC, i );
-        }
-        else    {
-            countDC = i;
-            setSens( &drvDC, (i - drvDC.getCount()) );
-        }
-        vitDC = defVit;
-        cptStart = cptMili;
-        break;
-/*
-    case 'A':
-        i = getDegOrPas(NULL, &s[1]);
-        if ( i!=0 ) {
-            countAD = drvAD.getCount() + i;
-            countDC = drvDC.getCount() + i;
-            vitAD = defVit;
-            vitDC = defVit;
-            Serial.print("Asc. droite + Declinaison : ");
-            Serial.println( i, DEC );
-        }
-        break;
-*/
     case 'm':
         printMode();
         break;
@@ -961,11 +931,7 @@ void decodeCmd( String s)  {
         changeMode();
         break;
     case 'n':
-        vitAD = -1;
-        vitDC = -1;
-        countAD = 0;
-        countDC = 0;
-        bCherche = false;
+        listEvenement.reset();
         Serial.println("--STOP--");
         break;
     case 'i' :
@@ -995,6 +961,9 @@ void decodeCmd( String s)  {
         break;
     case 'v':
         i = getNum(&s[1]);
+        pasSideral = i;
+        printInfoVitsseSiderale();
+        break;
         if ( i < 0 )        i = -i;
         if ( i > 4000 )     i = 4000;
         if ( i>=6 )         defVit = i;
@@ -1060,12 +1029,12 @@ void decodeCmd( String s)  {
         Serial.print("Suivi rotation terre : ");
         if ( bSuivi )       Serial.println( "OUI" );
         else                Serial.println( "NON" );
+
+        if ( bSuivi )       cptMiliSuivi = 0;
         break;
     case 'C':
-        bCherche = true;
-        uCherche = -1;
-        nbCherche = 0;
-        chercheSuivant();
+        i = getNum(&s[1]);
+        chercheSuivant(i);
         break;
     case 'z':
         i = getNum(&s[1]);
@@ -1092,12 +1061,17 @@ void decodeCmd( String s)  {
         break;
     }
 }
+
 //-----------------------------------------------------------------------------
-// 400000 pas = 86.5 deg
+//
+//
+//
 //------------------------------------------------------------------------------
 void readCommand()  {
     String s = Serial.readString();
     s[s.length()-1] = 0;
+
+    bCmdMultiple = false;
     while( 1 )  {
         int n = s.indexOf(';', 0 );
         if ( n == -1)   {
@@ -1107,140 +1081,9 @@ void readCommand()  {
         s[n] = 0;
         decodeCmd(s);
         s = &s[n+1];
+        bCmdMultiple = true;
     }
 } 
-//-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void loopBtn() {
-    int val;
-
-    btnMili++;
-    if ( btnMili < 100 )      return;
-    
-    btnMili = 0;
-    val = digitalRead( pinBtn );
-    if ( (val == HIGH) && bOk)   {
-        changeJoy();
-        bOk = false;
-    }
-    if (val == LOW)     bOk = true;
-}
-//-----------------------------------------------------------------------------
-//
-// Envoi la position de la monture 5x par seconde
-//
-//------------------------------------------------------------------------------
-long cptPosition = 0;
-void printPosition(void)    {
-    //if ( vitAD == -1 && vitDC == -1 )       return;
-
-    if ( cptPosition < cptMili )    {
-        long cad, cdc;
-        cptPosition = cptMili + 2000.0;//10000.0;
-        cad = drvAD.getCount();
-        cdc = drvDC.getCount();
-        Serial.print("-a");
-        Serial.println( PAS2DEG(cad), DEC );
-        Serial.print("-d");
-        Serial.println( PAS2DEG(cdc), DEC );
-    }
-
-}
-//-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-//long c0 = 0;
-void computePosition() {
-    float t;
-
-    if ( vitDC != -1 )    {
-         if (   ( drvDC.getSens() && (drvDC.getCount()+countDCSideral) >= (countDC) )
-             || (!drvDC.getSens() && (drvDC.getCount()+countDCSideral) <= (countDC) ) )
-        {
-            vitDC = -1;
-            countDC = 0;
-            
-            if ( (vitAD == -1) )      {
-                t = (cptMili - cptStart)/10000.0;
-                if ( !bRattrapeJeu )    {
-                    Serial.print("GOTO OK in ");
-                    Serial.print( t, DEC);
-                    Serial.println("s ");
-                    
-                    Serial.print("Rattrapage rotation ");
-                    Serial.print( iRat, DEC);
-                    Serial.println(" pas ");
-                    bRattrapage = true;
-                    currentRat = 0;
-                }
-                bRattrapeJeu = false;
-            }
-            
-        }
-    }
-    if ( vitAD != -1 )    {
-        if (   ( drvAD.getSens() && (drvAD.getCount()+countADSideral) >= (countAD) )
-            || (!drvAD.getSens() && (drvAD.getCount()+countADSideral) <= (countAD) ) )
-        {
-            vitAD = -1;
-            countAD = 0;
-            
-            if ( (vitDC == -1) )      {
-                t = (cptMili - cptStart)/10000.0;
-                if ( !bRattrapeJeu )    {
-                    Serial.print("GOTO OK in ");
-                    Serial.print( t, DEC );
-                    Serial.println("s ");
-                    
-                    Serial.print("Rattrapage rotation ");
-                    Serial.print( iRat, DEC);
-                    Serial.println(" pas ");
-
-                    bRattrapage = true;
-                    currentRat = 0;
-                }
-                bRattrapeJeu = false;
-            }
-            
-        }
-    }
-}
-//-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void chercheSuivant()   {
-    if ( vitDC!=-1 || vitAD!=-1 )       return;
-    
-    uCherche++;
-    uCherche = uCherche%4;
-    
-    nbCherche += PAS_CHERCHE;
-
-    switch( uCherche )  {
-        case 0:
-            vitAD = defVit;
-            countAD = drvAD.getCount() + nbCherche;
-            setSens( &drvAD, (countAD - drvAD.getCount()) );
-            break;
-        case 1:
-            vitDC = defVit;
-            countDC = drvDC.getCount() + nbCherche;
-            setSens( &drvDC, (countDC - drvDC.getCount()) );
-            break;
-        case 2:
-            vitAD = defVit;
-            countAD = drvAD.getCount() - nbCherche;
-            setSens( &drvAD, (countAD - drvAD.getCount()) );
-            break;
-        case 3:
-            vitDC = defVit;
-            countDC = drvDC.getCount() - nbCherche;
-            setSens( &drvDC, (countDC - drvDC.getCount()) );
-            break;
-    }
-    Serial.println( uCherche, DEC );
-}
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
@@ -1248,12 +1091,12 @@ void chercheSuivant()   {
 void loop() {
     if ( Serial.available() )       readCommand();
     
-    if ( bCherche )                 chercheSuivant();
-
-    if ( bJoy && !bRattrapeJeu )    loopTestTimerDC();
+    if ( bJoy && !bRattrapeJeu )    loopJostick();
     else                            computePosition();
 
     loopBtn();
+    
     if (bPrintPos)                  printPosition();
+    if (bSuivi)                     computeSuivi();
 }
 
