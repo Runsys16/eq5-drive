@@ -1,0 +1,4 @@
+C30       9.48  Pegase
+C12       9.60  Cephee
+NGC7023   6.80  Cephee
+

@@ -845,7 +845,7 @@ void computeSuivi()  {
     if ( pulseSideral >= pasSideral )   {
         pulseSideral = pulseSideral - pasSideral;
         
-        long countAD = drvAD.getCount() + 1;
+        long countAD = drvAD.getCount() + (bSensSideral ? 1 : -1);
         Evenement* pEvt = new Evenement(countAD, 0, defVit, -1, true, false);
         //Serial.println(countAD, DEC);
         listEvenement.addfirst(pEvt);
