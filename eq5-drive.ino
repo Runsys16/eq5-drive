@@ -521,8 +521,19 @@ void printInfoPosition()  {
 
     cad = drvAD.getCount();
     cdc = drvDC.getCount();
-    dest_ad = countAD;
-    dest_dc = countDC;
+
+    Evenement *     pEvt = listEvenement.getCurrent();
+    
+    if ( pEvt != NULL)      {
+        dest_ad = pEvt->getPasAD();
+        dest_dc = pEvt->getPasDC();
+    }
+    else    {
+        dest_dc = 0;
+        dest_ad = 0;
+    }
+
+
 
     Serial.println("==================================");
     Serial.print( "Asc Dr : " );
@@ -535,10 +546,10 @@ void printInfoPosition()  {
     Serial.print( ") => " );
     Serial.print( " dest = " );
     Serial.print( dest_ad, DEC );
-    Serial.print( pasToDc(cdc) );
     Serial.println("");
 
     Serial.print( "Declin : " );
+    Serial.print( pasToDc(cdc) );
     Serial.print( " , " );
     Serial.print( cdc, DEC );
     Serial.print( " (sens " );
