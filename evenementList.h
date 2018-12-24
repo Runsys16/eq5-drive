@@ -17,7 +17,7 @@ class EvenementList{
         // Initialisation constructeur
         //-----------------------------
         EvenementList();
-        // Ajoute cet objet au debut de la list
+        // Remet à zero la list
         void                reset();
         // Ajoute cet objet au debut de la list
         void                addfirst(Evenement* pEvt);

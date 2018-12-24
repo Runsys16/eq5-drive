@@ -383,6 +383,7 @@ void computeJoyAD(int y)    {
     long        ciblePas;
     
     
+    lastJoy = JOY_AD;
     currentPas = drvAD.getCount();
     
     pEvt = listEvenement.getCurrent();
@@ -433,6 +434,7 @@ void computeJoyDC(int y)    {
     long        ciblePas;
     
     
+    lastJoy = JOY_DC;
     currentPas = drvDC.getCount();
     
     pEvt = listEvenement.getCurrent();
@@ -751,25 +753,31 @@ void changeJoy()  {
     vitDC = -1;
     countAD = 0;
     countDC = 0;
-    
-        long duree = cptMili - cptMiliDbl;
-        //Serial.println( cptMiliDbl, DEC );
-        //Serial.println( duree, DEC );
 
-        if ( duree>100 && duree<3000 )    {
-            Serial.println( "dbl click");
-            bJoy  = true;
-            if ( lastJoy == JOY_DC )    {
-                signeJoyDC *= -1;
-                printRotJoyDC();
-            }
-            else
-            if ( lastJoy == JOY_AD )    {
-                signeJoyAD *= -1;
-                printRotJoyAD();
-            }
+    //-----------------------------------
+    // Gestion du double click    
+    long duree = cptMili - cptMiliDbl;
+
+    if ( duree>100 && duree<3000 )    {
+        Serial.println( "dbl click");
+        bJoy  = true;
+        if ( lastJoy == JOY_DC )    {
+            signeJoyDC *= -1;
+            printRotJoyDC();
         }
-        cptMiliDbl = cptMili;
+        else
+        if ( lastJoy == JOY_AD )    {
+            signeJoyAD *= -1;
+            printRotJoyAD();
+        }
+    }
+    cptMiliDbl = cptMili;
+
+    //-------------------------------------------------------------
+    // Si on quitte le joystick effacement des evenements en cours 
+    if ( !bJoy )    {
+        listEvenement.reset();
+    }   
 }
 //-----------------------------------------------------------------------------
 //
