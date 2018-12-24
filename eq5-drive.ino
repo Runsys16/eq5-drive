@@ -337,7 +337,7 @@ void computeJoyDC(int x)    {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void computeJoyAD(int y)    {
+void computeJoyADold(int y)    {
     bool bSens;
     lastJoy = JOY_AD;
     
@@ -371,6 +371,48 @@ void computeJoyAD(int y)    {
     //else
     //   Serial.println( vitAD, DEC );
     //Serial.println( vitAD, DEC );
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void computeJoyAD(int y)    {
+    bool        bSens;
+    Evenement*  pEvt;
+    int         sign = 1;
+    long        currentPas, ciblePas;
+    
+    
+    currentPas = drvAD->getCount();
+    
+    pEvt = listEvenement.getCurrent();
+    
+    if ( pEvt == NULL )  {
+        pEvt = new Evenement();
+        listEvenement.addfirst(pEvt);
+    }
+    
+    y = signeJoyAD * (y-512);
+
+    if ( y>=0 )     sign = 1;
+    else            sign = -1;
+    
+    if ( bRelatif )         ciblePas = sign * 1000 + currentPas;
+    else                    ciblePas = sign * 1000;
+
+    cptStart = cptMili;
+    
+    Serial.print("Asc. droite : ");
+    Serial.print(ciblePas, DEC );
+    Serial.print( ", ");
+    Serial.println( PAS2DEG(ciblePas), DEC );
+
+    vitAD = computeVit(y);
+    if ( vitAD == -1 )  {
+        drvAD.stop();
+    }
+
+    pEvt->setPasAD( ciblePas );
+    pEvt->setVitAD( vitAD );
 }
 //-----------------------------------------------------------------------------
 //
