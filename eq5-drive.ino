@@ -302,7 +302,7 @@ void rattrapeJeuAD(int sign)    {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void computeJoyDC(int x)    {
+void computeJoyDCold(int x)    {
     bool bSens;
     lastJoy = JOY_DC;
 
@@ -378,11 +378,12 @@ void computeJoyADold(int y)    {
 void computeJoyAD(int y)    {
     bool        bSens;
     Evenement*  pEvt;
-    int         sign = 1;
-    long        currentPas, ciblePas;
+    long        sign = 1;
+    long        currentPas;
+    long        ciblePas;
     
     
-    currentPas = drvAD->getCount();
+    currentPas = drvAD.getCount();
     
     pEvt = listEvenement.getCurrent();
     
@@ -396,16 +397,12 @@ void computeJoyAD(int y)    {
     if ( y>=0 )     sign = 1;
     else            sign = -1;
     
-    if ( bRelatif )         ciblePas = sign * 1000 + currentPas;
-    else                    ciblePas = sign * 1000;
+    if ( !bRelatif )         ciblePas = sign * 10000 + currentPas;
+    else                    ciblePas = sign * 10000;
 
     cptStart = cptMili;
     
-    Serial.print("Asc. droite : ");
-    Serial.print(ciblePas, DEC );
-    Serial.print( ", ");
-    Serial.println( PAS2DEG(ciblePas), DEC );
-
+    if ( y<0 )      y = -y;
     vitAD = computeVit(y);
     if ( vitAD == -1 )  {
         drvAD.stop();
@@ -413,6 +410,66 @@ void computeJoyAD(int y)    {
 
     pEvt->setPasAD( ciblePas );
     pEvt->setVitAD( vitAD );
+
+    /*
+    Serial.print("Asc. droite = ");
+    Serial.print(ciblePas, DEC );
+    Serial.print(" (");
+    Serial.print( PAS2DEG(ciblePas), DEC );
+    Serial.print( "°), vitAD = ");
+    Serial.print( vitAD, DEC );
+    Serial.println( "" );
+    */
+
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void computeJoyDC(int y)    {
+    bool        bSens;
+    Evenement*  pEvt;
+    long        sign = 1;
+    long        currentPas;
+    long        ciblePas;
+    
+    
+    currentPas = drvDC.getCount();
+    
+    pEvt = listEvenement.getCurrent();
+    
+    if ( pEvt == NULL )  {
+        pEvt = new Evenement();
+        listEvenement.addfirst(pEvt);
+    }
+    
+    y = signeJoyDC * (y-512);
+
+    if ( y>=0 )     sign = 1;
+    else            sign = -1;
+    
+    if ( !bRelatif )         ciblePas = sign * 10000 + currentPas;
+    else                    ciblePas = sign * 10000;
+
+    cptStart = cptMili;
+    
+    if ( y<0 )      y = -y;
+    vitDC = computeVit(y);
+    if ( vitDC == -1 )  {
+        drvDC.stop();
+    }
+
+    pEvt->setPasDC( ciblePas );
+    pEvt->setVitDC( vitDC );
+
+    /*
+    Serial.print("Declinaison = ");
+    Serial.print(ciblePas, DEC );
+    Serial.print(" (");
+    Serial.print( PAS2DEG(ciblePas), DEC );
+    Serial.print( "°), vitDC = ");
+    Serial.print( vitDC, DEC );
+    Serial.println( "" );
+    */
 }
 //-----------------------------------------------------------------------------
 //
@@ -420,6 +477,16 @@ void computeJoyAD(int y)    {
 void loopJostick()    {
     int x = analogRead(pinJoyX);
     int y = analogRead(pinJoyY);
+    
+    if ( x<(512-JOY_ZONE_NEUTRE) || x>(512+JOY_ZONE_NEUTRE) )     computeJoyDC(x);
+    if ( y<(512-JOY_ZONE_NEUTRE) || y>(512+JOY_ZONE_NEUTRE) )     computeJoyAD(y);
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void emuleJoy(int x, int y)    {
+    if ( x<0 || x>=1024 )       return;
+    if ( y<0 || y>=1024 )       return;
     
     if ( x<(512-JOY_ZONE_NEUTRE) || x>(512+JOY_ZONE_NEUTRE) )     computeJoyDC(x);
     if ( y<(512-JOY_ZONE_NEUTRE) || y>(512+JOY_ZONE_NEUTRE) )     computeJoyAD(y);
@@ -967,6 +1034,14 @@ void decodeCmd( String s)  {
     switch( cmd )   {
     case 'j':
         changeJoy();
+        break;
+    case 'x':
+        i = getNum(&s[1]);
+        emuleJoy( i, 512);
+        break;
+    case 'y':
+        i = getNum(&s[1]);
+        emuleJoy( 512, i);
         break;
     case 'g':
         printInfo();
