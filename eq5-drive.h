@@ -114,7 +114,7 @@ float   vitSiderale = 0.0;
 float   pasSideral  = 0.0;
 float   pulseSideral = 0.0;
 //------------------------------------------------------------------------------
-int     signeJoyAD = 1;
+int     signeJoyAD = -1;
 int     signeJoyDC = 1;
 //------------------------------------------------------------------------------
 bool    bCherche=false;

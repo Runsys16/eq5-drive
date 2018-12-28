@@ -4,8 +4,19 @@
 #ifndef EQ5_DRIVE_CPP
 #define EQ5_DRIVE_CPP
 #endif
+
+
+//#define DEBUG_JOY_COMPUTEJOY 1
+//#define DEBUG_JOY_COMPUTEVIT 1
+//#define DEBUG_JOY_XY 1
+#define LCD 1
 //------------------------------------------------------------------------------
 #include "eq5-drive.h"
+
+#ifdef LCD
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(33,35, 37,39,41,43);
+#endif
 //------------------------------------------------------------------------------
 //	Routine d'interruption
 //	----------------------
@@ -119,8 +130,9 @@ void setup() {
     drvAD.normalRot();
     
     
-    vitSiderale = (360.0/86164.1)-1.9*(0.09717608/3600);
-    vitSiderale = 360.0/86164.1;
+    //vitSiderale = (360.0/86164.1)-1.9*(0.09717608/3600);
+    vitSiderale = (360.0/86164.1)+2.5*(0.09717608/3600);
+    //vitSiderale = 360.0/86164.1;
     pasSideral  = (10000.0/DEG2PAS(vitSiderale));
     
     // Test sur stellarium pasSideral = 2212
@@ -128,6 +140,12 @@ void setup() {
     //pasSideral = 10.0 * pasSideral;
   
     //pasSideral = 2212;
+#ifdef LCD
+    lcd.begin(16,2);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print( "   EQ5-Drive" );
+#endif
 }
 //------------------------------------------------------------------------------
 //
@@ -183,10 +201,7 @@ long dc2pas( String s )   {
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-char * pasToAd( float f0 )   {
-    //String ret;
-    float f = f0;
-    char s[16];
+char * strDegToAd( char * s, float f )   {
     char sign = ' ';
     
     if ( f<0 )  {
@@ -194,9 +209,6 @@ char * pasToAd( float f0 )   {
         f = -f;
     }
 
-    //Serial.println( f, DEC );    
-    f = PAS2DEG(f); 
-    //Serial.println( f, DEC );    
     f = f/360.0*24.0;
     int h = (int)f;
     
@@ -215,27 +227,36 @@ char * pasToAd( float f0 )   {
     //Serial.println( f, DEC );    
     int mi = (int)f;
 
-    sprintf( s, "%c%02dh%02dm%02d.%02ds", sign, h, m, se, mi );
-    
+    sprintf( s, "%c%02dh%02dm%02d.%02ds ", sign, h, m, se, mi );
+}
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+char * strPasToAd( char * s, float f )   {
+    f = PAS2DEG(f); 
+    strDegToAd( s, f );
+}
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+char * pasToAd( float f0 )   {
+    char s[18];
+    strPasToAd( s, f0 );
     return s;
 }
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-char * pasToDc( float f )   {
-    String ret;
-    char s[18];
+void strDegToDc( char *s, float f )   {
+    //String ret;
     char sign = ' ';
+
     
     if ( f<0 )  {
         sign = '-';
         f = -f;
     }
 
-    //Serial.println( f, DEC );    
-    f = PAS2DEG(f); 
-    //Serial.println( f, DEC );    
-    //f = f/360.0*24.0;
     int h = (int)f;
     
     f = f - (float)h;
@@ -253,31 +274,49 @@ char * pasToDc( float f )   {
     //Serial.println( f, DEC );    
     int mi = (int)f;
 
-    sprintf( s, "%c%02d°%02d\"%02d.%02d\'", sign, h, m, se, mi );
+    sprintf( s, "%c%02d:%02d\"%02d.%02d\' ", sign, h, m, se, mi );
+}
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void strPasToDc( char *s, float f )   {
+    f = PAS2DEG(f); 
+    strDegToDc( s, f );
+}
+//------------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+char * pasToDc( float f )   {
+    char s[18];
     
+    strPasToDc( s, f );
     return s;
 }
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+#define DIVI    200.0
+#define MAXI    100.0
 int computeVit(int x)   {
-    float f = 550-x;
-    float v = 10*(exp((f)/128)-exp(0.0));
-    if      (v >500.0 )             v = -1.0;
-    else if (v <6.0 )               v = zoom*6.0;
-    else {
-        v= zoom * v;
-    }
-    /*
-    Serial.print( f, DEC );
-    Serial.print( " : " );
-    Serial.print( vit, DEC );
-    Serial.print( " : " );
-    Serial.println( v, DEC );
-    */
+    //float f = 512-x;
+    float X = x;
+    float f = 10*(exp((x)/DIVI)-exp(0.0));
+    f = MAXI - f;
+    if      (f >MAXI )              f = MAXI;
+    else if (f <6.0 )               f = 6.0;
 
+    f = zoom * f;
+    
 
-    return (int)v;
+#ifdef DEBUG_JOY_COMPUTEVIT
+    Serial.print( X, DEC );
+    Serial.print( " : " );
+    //Serial.print( vit, DEC );
+    //Serial.print( " : " );
+    Serial.println( f, DEC );
+#endif
+
+    return (int)f;
 }
 //-----------------------------------------------------------------------------
 //
@@ -298,79 +337,6 @@ void rattrapeJeuAD(int sign)    {
     bRattrapeJeu = true;
     vitAD = 6;
     return;
-}
-//-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void computeJoyDCold(int x)    {
-    bool bSens;
-    lastJoy = JOY_DC;
-
-    x = signeJoyDC * (x-512);
-
-    if ( x>=0 )  {
-        bSens = true;
-        drvDC.setSens(true);
-        if ( bSens != bOldSensDC )  {
-            rattrapeJeuDC(1);
-            bOldSensDC = true;
-            return;
-        }
-    }
-    else {
-        bSens = false;
-        drvDC.setSens(false);
-        x = -x;
-        if ( bSens != bOldSensDC )  {
-            rattrapeJeuDC(-1);
-            bOldSensDC = false;
-            return;
-        }
-    }
-
-    vitDC = computeVit(x);
-    if ( vitDC == -1 )  {
-        drvDC.stop();
-        //cptDC = 0;
-    }
-}
-//-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void computeJoyADold(int y)    {
-    bool bSens;
-    lastJoy = JOY_AD;
-    
-    y = signeJoyAD * (y-512);
-
-    if ( y>=0 )  {
-        bSens = true;
-        drvAD.setSens(true);
-        if ( bSens != bOldSensAD )  {
-            rattrapeJeuAD(1);
-            bOldSensAD = true;
-            return;
-        }
-    }
-    else {
-        bSens = false;
-        drvAD.setSens(false);
-        y = -y;
-        if ( bSens != bOldSensAD )  {
-            rattrapeJeuAD(-1);
-            bOldSensAD = false;
-            return;
-        }
-    }
-
-    vitAD = computeVit(y);
-    if ( vitAD == -1 )  {
-        drvAD.stop();
-        //cptAD = 0;
-    }
-    //else
-    //   Serial.println( vitAD, DEC );
-    //Serial.println( vitAD, DEC );
 }
 //-----------------------------------------------------------------------------
 //
@@ -398,7 +364,7 @@ void computeJoyAD(int y)    {
     if ( y>=0 )     sign = 1;
     else            sign = -1;
     
-    if ( !bRelatif )         ciblePas = sign * 10000 + currentPas;
+    if ( !bRelatif )        ciblePas = sign * 10000 + currentPas;
     else                    ciblePas = sign * 10000;
 
     cptStart = cptMili;
@@ -411,17 +377,17 @@ void computeJoyAD(int y)    {
 
     pEvt->setPasAD( ciblePas );
     pEvt->setVitAD( vitAD );
+    sensEvenement(pEvt);
 
-    /*
-    Serial.print("Asc. droite = ");
+#ifdef DEBUG_JOY_COMPUTEJOY
+    Serial.print("AD = ");
     Serial.print(ciblePas, DEC );
     Serial.print(" (");
     Serial.print( PAS2DEG(ciblePas), DEC );
     Serial.print( "°), vitAD = ");
     Serial.print( vitAD, DEC );
     Serial.println( "" );
-    */
-
+#endif
 }
 //-----------------------------------------------------------------------------
 //
@@ -449,7 +415,7 @@ void computeJoyDC(int y)    {
     if ( y>=0 )     sign = 1;
     else            sign = -1;
     
-    if ( !bRelatif )         ciblePas = sign * 10000 + currentPas;
+    if ( !bRelatif )        ciblePas = sign * 10000 + currentPas;
     else                    ciblePas = sign * 10000;
 
     cptStart = cptMili;
@@ -462,26 +428,44 @@ void computeJoyDC(int y)    {
 
     pEvt->setPasDC( ciblePas );
     pEvt->setVitDC( vitDC );
+    sensEvenement(pEvt);
 
-    /*
-    Serial.print("Declinaison = ");
+#ifdef DEBUG_JOY_COMPUTEJOY
+    Serial.print("DC = ");
     Serial.print(ciblePas, DEC );
     Serial.print(" (");
     Serial.print( PAS2DEG(ciblePas), DEC );
     Serial.print( "°), vitDC = ");
     Serial.print( vitDC, DEC );
     Serial.println( "" );
-    */
+#endif
 }
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
 void loopJostick()    {
+    Evenement*  pEvt;
+    pEvt = listEvenement.getCurrent();
+    
+    if ( pEvt == NULL )  {
+        pEvt = new Evenement();
+        listEvenement.addfirst(pEvt);
+    }
+    
     int x = analogRead(pinJoyX);
     int y = analogRead(pinJoyY);
+
+#ifdef DEBUG_JOY_XY
+    Serial.print( x, DEC );
+    Serial.print( ", " );
+    Serial.println( y, DEC );
+#endif
     
     if ( x<(512-JOY_ZONE_NEUTRE) || x>(512+JOY_ZONE_NEUTRE) )     computeJoyDC(x);
+    else pEvt->setVitDC( -1 );
+
     if ( y<(512-JOY_ZONE_NEUTRE) || y>(512+JOY_ZONE_NEUTRE) )     computeJoyAD(y);
+    else pEvt->setVitAD( -1 );
 }
 //-----------------------------------------------------------------------------
 //
@@ -742,6 +726,29 @@ void printInfo()  {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+void changeSuivi()  {
+    bSuivi = !bSuivi;
+    Serial.print("Suivi rotation terre : ");
+    if ( bSuivi )       Serial.println( "OUI" );
+    else                Serial.println( "NON" );
+
+    cptMiliSuivi = 0;
+
+
+    #ifdef LCD
+    if ( !bSuivi )    {
+        lcd.setCursor(15, 1);
+        lcd.print( " " );
+    }
+    else    {
+        lcd.setCursor(15, 1);
+        lcd.print( "*" );
+    }
+    #endif
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
 void changeJoy()  {
     static long cptMiliDbl = -1;
     bJoy = !bJoy;
@@ -777,7 +784,18 @@ void changeJoy()  {
     // Si on quitte le joystick effacement des evenements en cours 
     if ( !bJoy )    {
         listEvenement.reset();
+    }
+
+    #ifdef LCD
+    if ( !bJoy )    {
+        lcd.setCursor(15, 0);
+        lcd.print( " " );
+    }
+    else    {
+        lcd.setCursor(15, 0);
+        lcd.print( "*" );
     }   
+    #endif
 }
 //-----------------------------------------------------------------------------
 //
@@ -821,9 +839,12 @@ void loopBtn() {
 //------------------------------------------------------------------------------
 void printPosition(void)    {
     //if ( vitAD == -1 && vitDC == -1 )       return;
+    //static int nb = 0;
 
     if ( cptPosition < cptMili )    {
-        long cad, cdc;
+        //nb ++;
+        
+        static long cad, cdc;
         cptPosition = cptMili + 2000.0;//10000.0;
         cad = drvAD.getCount();
         cdc = drvDC.getCount();
@@ -831,8 +852,40 @@ void printPosition(void)    {
         Serial.println( PAS2DEG(cad), DEC );
         Serial.print("-d");
         Serial.println( PAS2DEG(cdc), DEC );
-    }
 
+        #ifdef LCD
+        //if ( nb > 5 )   {
+        //    nb = 0;
+            
+            static char sAD[20]= "A=";
+            static char sDC[20]= "D=";
+
+            if ( signeJoyAD == 1    )       sAD[0] = 'A';
+            else                            sAD[0] = 'a';
+            if ( signeJoyDC == 1    )       sDC[0] = 'D';
+            else                            sDC[0] = 'd';
+            //lcd.begin(16,2);
+            cad = drvAD.getCount();
+            cdc = drvDC.getCount();
+
+            float fad = PAS2DEG(cad);
+            float fdc = PAS2DEG(cdc);
+
+            if ( fdc >90.0 )        {
+                fdc = 180.0 - fdc;
+                fad = 180.0 + fad;
+            }
+
+            lcd.setCursor(0,0);
+            strDegToAd(&sAD[1], fad);
+            lcd.print( sAD );
+
+            lcd.setCursor(0,1);
+            strDegToDc(&sDC[1], fdc);
+            lcd.print( sDC );
+        //}
+        #endif
+    }
 }
 //-----------------------------------------------------------------------------
 //
@@ -1161,12 +1214,7 @@ void decodeCmd( String s)  {
         }
         break;
     case 'S':
-        bSuivi = !bSuivi;
-        Serial.print("Suivi rotation terre : ");
-        if ( bSuivi )       Serial.println( "OUI" );
-        else                Serial.println( "NON" );
-
-        if ( bSuivi )       cptMiliSuivi = 0;
+        changeSuivi();
         break;
     case 'C':
         i = getNum(&s[1]);
