@@ -4,18 +4,18 @@
 #ifndef EQ5_DRIVE_CPP
 #define EQ5_DRIVE_CPP
 #endif
-
-
+//------------------------------------------------------------------------------
+//                               DEBUG
+//------------------------------------------------------------------------------
 //#define DEBUG_JOY_COMPUTEJOY 1
 //#define DEBUG_JOY_COMPUTEVIT 1
 //#define DEBUG_JOY_XY 1
-#define LCD 1
+//#define LCD 1
 //------------------------------------------------------------------------------
 #include "eq5-drive.h"
-
 #ifdef LCD
-#include <LiquidCrystal.h>
-LiquidCrystal lcd(33,35, 37,39,41,43);
+    #include <LiquidCrystal.h>
+    LiquidCrystal lcd(33,35, 37,39,41,43);
 #endif
 //------------------------------------------------------------------------------
 //	Routine d'interruption
@@ -201,7 +201,7 @@ long dc2pas( String s )   {
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-char * strDegToAd( char * s, float f )   {
+void strDegToAd( char * s, float f )   {
     char sign = ' ';
     
     if ( f<0 )  {
@@ -232,16 +232,16 @@ char * strDegToAd( char * s, float f )   {
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-char * strPasToAd( char * s, float f )   {
+void strPasToAd( char * s, float f )   {
     f = PAS2DEG(f); 
     strDegToAd( s, f );
 }
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-char * pasToAd( float f0 )   {
+char * pasToAd( float f )   {
     char s[18];
-    strPasToAd( s, f0 );
+    strPasToAd( s, f );
     return s;
 }
 //------------------------------------------------------------------------------
@@ -854,8 +854,6 @@ void printPosition(void)    {
         Serial.println( PAS2DEG(cdc), DEC );
 
         #ifdef LCD
-        //if ( nb > 5 )   {
-        //    nb = 0;
             
             static char sAD[20]= "A=";
             static char sDC[20]= "D=";
@@ -883,7 +881,7 @@ void printPosition(void)    {
             lcd.setCursor(0,1);
             strDegToDc(&sDC[1], fdc);
             lcd.print( sDC );
-        //}
+
         #endif
     }
 }

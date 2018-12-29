@@ -194,8 +194,14 @@ float       dc2deg( String s );
 float       ad2deg( String s );
 long        ad2pas( String s );
 long        dc2pas( String s );
-char *      pasToAd( float f0 );
+
+void        strDegToAd( String s, float f );
+void        strPasToAd( String s, float f );
+char *      pasToAd( float f );
+void        strDegToDc( String s, float f );
+void        strPasToDc( String s, float f );
 char *      pasToDc( float f );
+
 void        rattrapeJeuDC(int sign);
 void        rattrapeJeuAD(int sign);
 void        computeJoyDC(int x);
