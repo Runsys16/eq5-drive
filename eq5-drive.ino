@@ -839,10 +839,10 @@ void printMode()  {
     if ( bRelatif )         Serial.println("relatif !");
     else                    Serial.println("absolu !");
 }
-//-----------------------------------------------------------------------------
+ //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void changeMode()  {
+void  changeMode()  {
     bRelatif = !bRelatif;
     Serial.print("Nouveau mode : ");
     if ( bRelatif )         Serial.println("relatif !");
@@ -958,7 +958,9 @@ void decodeCmd( String s)  {
         printMode();
         break;
     case 'M':
-        changeMode();
+        if ( s[1] == 'a' )              bRelatif = false;
+        else if ( s[1] == 'r' )         bRelatif = true;
+        else                            changeMode();
         break;
     case 'n':
         vitAD = -1;
