@@ -604,7 +604,9 @@ void printInfoVitsseSiderale()  {
     Serial.print( vitSiderale, DEC );
     Serial.print(" °/s,   Pas sideral : " );
     Serial.print( pasSideral, DEC );
-    Serial.print(" tip/pas" );
+    Serial.println(" tip/pas" );
+    Serial.print("DefVit " );
+    Serial.print( defVit, DEC );
     Serial.println("");
 }
 //-----------------------------------------------------------------------------
@@ -1090,6 +1092,10 @@ void decodeCmd( String s)  {
     long i, cad, cdc;
     float f;
     
+    Serial.print("Arduino::decodeCmd( ");
+    Serial.print(s);
+    Serial.println(" )");
+    
     switch( cmd )   {
     case 'j':
         changeJoy();
@@ -1115,7 +1121,9 @@ void decodeCmd( String s)  {
         printMode();
         break;
     case 'M':
-        changeMode();
+        if ( s[1]=='r' )        bRelatif = true;
+        else if ( s[1]=='a' )   bRelatif = false;
+        else                    changeMode();
         break;
     case 'n':
         listEvenement.reset();
@@ -1166,6 +1174,16 @@ void decodeCmd( String s)  {
             Serial.print(" pas sideral : " );
             Serial.print( pasSideral, DEC );
             Serial.println("");
+        }
+        break;
+    case 'D':
+        {
+        i = getNum(&s[1]);
+        if ( i < 0 )        break;;
+        if ( i > 4000 )     i = 4000;
+        if ( i>=6 )         defVit = i;
+        
+        printInfoVitsseSiderale();
         }
         break;
     case 'c':
@@ -1249,10 +1267,28 @@ void decodeCmd( String s)  {
 //
 //
 //------------------------------------------------------------------------------
+int findPointVirgule(byte* s)  {
+    for ( int i=0; i<s[i]!=0; i++ )
+    {
+        if ( s[i] == ';' )      return i;
+    }
+    return -1;
+}
+//-----------------------------------------------------------------------------
+//
+//
+//
+//------------------------------------------------------------------------------
 void readCommand()  {
-    String s = Serial.readString();
-    s[s.length()-1] = 0;
-
+    String  s = Serial.readString();
+    byte    buf[200];
+    char*   p;
+    
+    s.getBytes(buf, 200);
+    p = buf;
+    
+    //s[s.length()-1] = 0;
+    /*
     bCmdMultiple = false;
     while( 1 )  {
         int n = s.indexOf(';', 0 );
@@ -1263,6 +1299,20 @@ void readCommand()  {
         s[n] = 0;
         decodeCmd(s);
         s = &s[n+1];
+        bCmdMultiple = true;
+    }
+    */
+    bCmdMultiple = false;
+    
+    while( 1 )  {
+        int n = findPointVirgule(p);
+        if ( n == -1)   {
+            decodeCmd(String(p));
+            break;
+        }
+        p[n] = 0;
+        decodeCmd(String(p));
+        p = p + n + 1;
         bCmdMultiple = true;
     }
 } 
