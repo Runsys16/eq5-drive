@@ -76,7 +76,6 @@ int     vitAD = -1;
 bool    bPrintPos = false   ;
 bool    bJoy = false;
 bool    bOk = false;
-bool    bRelatif = false;
 long    countAD = 0;
 long    countDC = 0;
 long    countADSideral = 0;
@@ -832,23 +831,6 @@ void changeJoy()  {
         cptMiliDbl = cptMili;
 }
 //-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void printMode()  {
-    Serial.print("Mode ");
-    if ( bRelatif )         Serial.println("relatif !");
-    else                    Serial.println("absolu !");
-}
- //-----------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-void  changeMode()  {
-    bRelatif = !bRelatif;
-    Serial.print("Nouveau mode : ");
-    if ( bRelatif )         Serial.println("relatif !");
-    else                    Serial.println("absolu !");
-}
-//-----------------------------------------------------------------------------
 // 400000 pas = 86.5 deg
 //------------------------------------------------------------------------------
 void decodeCmd( String s)  {
@@ -864,41 +846,16 @@ void decodeCmd( String s)  {
     case 'g':
         printInfo();
         break;
-    case 'd':
-        if (bJoy)   changeJoy();
-        //i = getDegOrPas(&drvDC, &s[1]);
-        i = deg2pas( &s[1] );
-        if ( i != 0 )  {
-            if ( bRelatif ) {
-                countDC = drvDC.getCount() + i;
-                setSens( &drvDC, i );
-            }
-            else    {
-                countDC = i;
-                setSens( &drvDC, (i - drvDC.getCount()) );
-            }
-            vitDC = defVit;
-            cptStart = cptMili;
-            Serial.print("Declinaison : ");
-            Serial.print(countDC, DEC );
-            Serial.print( ", ");
-            Serial.println( PAS2DEG(countDC), DEC );
-            iRat = 0;
-            pulseRat = 0.0;
-        }
-        break;
+    //-------------------------------------------------------------------------
+    // Changement AD en relatif
+    //-------------------------------------------------------------------------
     case 'a':
         if (bJoy)   changeJoy();
         i = deg2pas( &s[1] );
         if ( i != 0 )  {
-            if ( bRelatif ) {
-                countAD = drvAD.getCount() + i;
-                setSens( &drvAD, i );
-            }
-            else    {
-                countAD = i;
-                setSens( &drvAD, (i - drvAD.getCount()) );
-            }
+            countAD = drvAD.getCount() + i;
+            setSens( &drvAD, i );
+
             vitAD = defVit;
             cptStart = cptMili;
             Serial.print("Asc. droite : ");
@@ -909,37 +866,67 @@ void decodeCmd( String s)  {
             pulseRat = 0.0;
         }
         break;
+    //-------------------------------------------------------------------------
+    // Changement AD en absolu
+    //-------------------------------------------------------------------------
     case 'A':
-        i = ad2pas( &s[1]);
-        Serial.println( i, DEC );
-        f = ad2deg( &s[1]);
-        Serial.println( f, DEC );
-        if ( bRelatif ) {
-            countAD = drvAD.getCount() + i;
-            setSens( &drvAD, i );
-        }
-        else    {
+        if (bJoy)   changeJoy();
+        i = deg2pas( &s[1] );
+        if ( i != 0 )  {
             countAD = i;
             setSens( &drvAD, (i - drvAD.getCount()) );
+
+            vitAD = defVit;
+            cptStart = cptMili;
+            Serial.print("Asc. droite : ");
+            Serial.print(countAD, DEC );
+            Serial.print( ", ");
+            Serial.println( PAS2DEG(countAD), DEC );
+            iRat = 0;
+            pulseRat = 0.0;
         }
-        vitAD = defVit;
-        cptStart = cptMili;
         break;
-    case 'D':
-        i = dc2pas( &s[1]);
-        Serial.println( i, DEC );
-        f = dc2deg( &s[1]);
-        Serial.println( f, DEC );
-        if ( bRelatif ) {
+    //-------------------------------------------------------------------------
+    // Changement DEC en relatif
+    //-------------------------------------------------------------------------
+    case 'd':
+        if (bJoy)   changeJoy();
+        //i = getDegOrPas(&drvDC, &s[1]);
+        i = deg2pas( &s[1] );
+        if ( i != 0 )  {
             countDC = drvDC.getCount() + i;
             setSens( &drvDC, i );
+
+            vitDC = defVit;
+            cptStart = cptMili;
+            Serial.print("Declinaison : ");
+            Serial.print(countDC, DEC );
+            Serial.print( ", ");
+            Serial.println( PAS2DEG(countDC), DEC );
+            iRat = 0;
+            pulseRat = 0.0;
         }
-        else    {
+        break;
+    //-------------------------------------------------------------------------
+    // Changement DEC en absolu
+    //-------------------------------------------------------------------------
+    case 'D':
+        if (bJoy)   changeJoy();
+        //i = getDegOrPas(&drvDC, &s[1]);
+        i = deg2pas( &s[1] );
+        if ( i != 0 )  {
             countDC = i;
             setSens( &drvDC, (i - drvDC.getCount()) );
+
+            vitDC = defVit;
+            cptStart = cptMili;
+            Serial.print("Declinaison : ");
+            Serial.print(countDC, DEC );
+            Serial.print( ", ");
+            Serial.println( PAS2DEG(countDC), DEC );
+            iRat = 0;
+            pulseRat = 0.0;
         }
-        vitDC = defVit;
-        cptStart = cptMili;
         break;
 /*
     case 'A':
@@ -954,14 +941,6 @@ void decodeCmd( String s)  {
         }
         break;
 */
-    case 'm':
-        printMode();
-        break;
-    case 'M':
-        if ( s[1] == 'a' )              bRelatif = false;
-        else if ( s[1] == 'r' )         bRelatif = true;
-        else                            changeMode();
-        break;
     case 'n':
         vitAD = -1;
         vitDC = -1;
