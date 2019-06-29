@@ -73,7 +73,7 @@ int     vitDC = -1;
 long    cptAD = 0;
 int     vitAD = -1;
 //------------------------------------------------------------------------------
-bool    bPrintPos = false   ;
+bool    bPrintPos = true   ;
 bool    bJoy = false;
 bool    bOk = false;
 long    countAD = 0;
@@ -102,6 +102,7 @@ bool    bRattrapeJeu=false;
 #define JOY_DC        2
 #define JOY_AD        3
 int     lastJoy=JOY_NONE;
+bool    stateJoy = false;
 //------------------------------------------------------------------------------
 bool    bRattrapage = false;
 int     iRat = 0;
@@ -401,7 +402,7 @@ char * pasToDc( float f )   {
     //Serial.println( f, DEC );    
     int mi = (int)f;
 
-    sprintf( s, "%c%02d°%02d\"%02d.%02d\'", sign, h, m, se, mi );
+    sprintf( s, "%c%02dd%02d\'%02d.%02d\"", sign, h, m, se, mi );
     
     return s;
 }
@@ -719,7 +720,7 @@ void printInfoTime()  {
 void printInfoVitsseSiderale()  {
     Serial.print("V. siderale : " );
     Serial.print( vitSiderale, DEC );
-    Serial.print("°/s,   Pas sideral : " );
+    Serial.print("deg/s,   Pas sideral : " );
     Serial.print( pasSideral, DEC );
     Serial.println("");
 }
@@ -735,7 +736,7 @@ void printInfo()  {
     dest_ad = countAD;
     dest_dc = countDC;
 
-    Serial.println("==================================");
+    Serial.println("=INFO START=======================");
     Serial.print( "Asc Dr : " );
     Serial.print( pasToAd(cad) );
     Serial.print( " , " );
@@ -761,9 +762,9 @@ void printInfo()  {
     Serial.println( "" );
 
     Serial.println("==================================");
-    Serial.print("Convertion (pas/°) : " );
+    Serial.print("Convertion (pas/deg) : " );
     Serial.print( convert, DEC );
-    Serial.print("   pas/° ");
+    Serial.print("   pas/deg ");
     Serial.print( K_CONV, DEC );
     Serial.println("");
 
@@ -794,7 +795,7 @@ void printInfo()  {
     Serial.println("");
 
     printInfoTime();
-    Serial.println("==================================");
+    Serial.println("=INFO STOP========================");
 }
 //-----------------------------------------------------------------------------
 //
@@ -815,7 +816,7 @@ void changeJoy()  {
         //Serial.println( cptMiliDbl, DEC );
         //Serial.println( duree, DEC );
 
-        if ( duree>100 && duree<3000 )    {
+        if ( duree>100 && duree<2000 )    {
             Serial.println( "dbl click");
             bJoy  = true;
             if ( lastJoy == JOY_DC )    {
@@ -1093,19 +1094,35 @@ void readCommand()  {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+long startMiliBtn = 0L;
 void loopBtn() {
     int val;
 
     btnMili++;
-    if ( btnMili < 100 )      return;
+    //if ( btnMili < 500 )      return;
     
     btnMili = 0;
     val = digitalRead( pinBtn );
-    if ( (val == HIGH) && bOk)   {
-        changeJoy();
-        bOk = false;
+    if ( (val == HIGH) && !stateJoy)   {
+        startMiliBtn = cptMili;
     }
-    if (val == LOW)     bOk = true;
+
+    if ((val == LOW) && stateJoy)
+    {
+        /*
+        Serial.print( cptMili-startMiliBtn, DEC );
+        Serial.print( " , " );
+        Serial.println( cptMili, DEC );
+        */
+        if ( (cptMili-startMiliBtn) > 200 )
+        {
+            changeJoy();
+        }
+        bOk = true;
+    }
+    
+    stateJoy = true;
+    if (val == LOW)     stateJoy = false;
 }
 //-----------------------------------------------------------------------------
 //
