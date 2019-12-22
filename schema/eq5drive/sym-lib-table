@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name w_connectors)(type Legacy)(uri /home/rene/Téléchargements/KICAD/librairie/w_connectors.lib)(options "")(descr ""))
+  (lib (name arduino)(type Legacy)(uri /home/rene/Téléchargements/KICAD/librairie/arduino-kicad-library-master/arduino.lib)(options "")(descr ""))
+)
