@@ -1,0 +1,5 @@
+(fp_lib_table
+  (lib (name eq5drive)(type KiCad)(uri ${KIPRJMOD}/eq5drive.pretty)(options "")(descr ""))
+  (lib (name mega-shield)(type KiCad)(uri ${KIPRJMOD}/eq5drive.pretty/mega-shield.pretty)(options "")(descr ""))
+  (lib (name arduino-shield)(type KiCad)(uri ${KIPRJMOD}/arduino-shield.pretty)(options "")(descr ""))
+)
