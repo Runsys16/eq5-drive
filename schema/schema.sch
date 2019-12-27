@@ -14,17 +14,6 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L schema-rescue:ARDUINO_MEGA-shield_arduino-test-rescue SH1
-U 1 1 5E01C684
-P 3250 3800
-F 0 "SH1" H 3262 6593 60  0000 C CNN
-F 1 "ARDUINO_MEGA" H 3262 6487 60  0000 C CNN
-F 2 "SHIELD_ARDUINO:ARDUINO_MEGA_2560_R3_ELL" H 2300 4100 60  0001 C CNN
-F 3 "http://arduino.cc/en/Main/ArduinoBoardMega2560" H 3262 6381 60  0000 C CNN
-	1    3250 3800
-	1    0    0    -1  
-$EndComp
-$Comp
 L Driver_Motor:Pololu_Breakout_A4988 A1
 U 1 1 5E01E61A
 P 7600 1950
@@ -107,15 +96,7 @@ Entry Wire Line
 Wire Wire Line
 	7000 1550 7200 1550
 Wire Wire Line
-	7200 1850 7000 1850
-Wire Wire Line
-	7000 1950 7200 1950
-Wire Wire Line
 	7200 2050 7000 2050
-Wire Wire Line
-	7000 2250 7200 2250
-Wire Wire Line
-	7200 2350 7000 2350
 Wire Wire Line
 	7000 2450 7200 2450
 Text Label 7000 1850 0    50   ~ 0
@@ -147,38 +128,7 @@ Entry Wire Line
 Entry Wire Line
 	4700 2500 4800 2400
 Wire Wire Line
-	4400 2500 4425 2500
-Connection ~ 4425 2500
-Wire Wire Line
-	4425 2500 4700 2500
-Wire Wire Line
-	4400 2300 4425 2300
-Connection ~ 4425 2300
-Wire Wire Line
-	4425 2300 4700 2300
-Wire Wire Line
-	4400 2200 4425 2200
-Connection ~ 4425 2200
-Wire Wire Line
-	4425 2200 4700 2200
-Wire Wire Line
-	4400 2100 4425 2100
-Connection ~ 4425 2100
-Wire Wire Line
-	4425 2100 4700 2100
-Wire Wire Line
-	4400 2000 4425 2000
-Connection ~ 4425 2000
-Wire Wire Line
-	4425 2000 4700 2000
-Wire Wire Line
-	4400 1800 4425 1800
-Connection ~ 4425 1800
-Wire Wire Line
 	4425 1800 4700 1800
-Wire Wire Line
-	4400 1900 4425 1900
-Connection ~ 4425 1900
 Wire Wire Line
 	4425 1900 4700 1900
 Entry Wire Line
@@ -272,7 +222,6 @@ F 3 "" H 1550 2300 50  0001 C CNN
 	1    1550 2300
 	0    -1   -1   0   
 $EndComp
-Connection ~ 2100 2200
 Wire Wire Line
 	1550 2000 2100 2000
 Wire Wire Line
@@ -418,7 +367,7 @@ U 1 1 5E064E95
 P 8300 1400
 F 0 "C2" H 8388 1446 50  0000 L CNN
 F 1 "100u" H 8388 1355 50  0000 L CNN
-F 2 "Capacitors_THT:CP_Radial_D5.0mm_P2.50mm" H 8300 1400 50  0001 C CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm" H 8300 1400 50  0001 C CNN
 F 3 "~" H 8300 1400 50  0001 C CNN
 	1    8300 1400
 	1    0    0    -1  
@@ -498,7 +447,7 @@ U 1 1 5E076114
 P 8400 4150
 F 0 "C4" H 8488 4196 50  0000 L CNN
 F 1 "100u" H 8488 4105 50  0000 L CNN
-F 2 "Capacitors_THT:CP_Radial_D5.0mm_P2.50mm" H 8400 4150 50  0001 C CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm" H 8400 4150 50  0001 C CNN
 F 3 "~" H 8400 4150 50  0001 C CNN
 	1    8400 4150
 	1    0    0    -1  
@@ -587,11 +536,105 @@ Wire Wire Line
 	4650 3000 4650 5550
 Wire Wire Line
 	4650 5550 5850 5550
+NoConn ~ 2100 4300
+NoConn ~ 2100 4400
+NoConn ~ 2100 5075
+NoConn ~ 2100 4875
+NoConn ~ 2100 4775
+NoConn ~ 2100 4675
+NoConn ~ 2100 4575
+NoConn ~ 2100 5175
+NoConn ~ 2100 5275
+NoConn ~ 2100 5375
+NoConn ~ 2100 5475
+NoConn ~ 2100 5575
+NoConn ~ 2100 5675
+NoConn ~ 2100 5775
+NoConn ~ 2100 5975
+NoConn ~ 2100 6075
+NoConn ~ 2100 6175
+NoConn ~ 2100 6275
+NoConn ~ 4425 6150
+NoConn ~ 4425 6050
+NoConn ~ 4425 5850
+NoConn ~ 4425 5750
+NoConn ~ 4425 5650
+NoConn ~ 4425 5550
+NoConn ~ 4425 5450
+NoConn ~ 4425 5250
+NoConn ~ 4425 5150
+NoConn ~ 4425 5050
+NoConn ~ 4425 4950
+NoConn ~ 4425 4850
+NoConn ~ 4425 4750
+NoConn ~ 4425 4650
+NoConn ~ 4425 4550
+NoConn ~ 4425 4400
+NoConn ~ 4425 4300
+NoConn ~ 4425 4100
+NoConn ~ 4425 4000
+NoConn ~ 4425 3900
+NoConn ~ 4425 3800
+NoConn ~ 4425 3700
+NoConn ~ 4425 3600
+NoConn ~ 4425 3500
+NoConn ~ 4425 3400
+NoConn ~ 4425 3200
+NoConn ~ 4425 3100
+NoConn ~ 4425 2900
+NoConn ~ 4425 2800
+NoConn ~ 4425 2700
+NoConn ~ 4425 2600
+Wire Wire Line
+	4425 1700 4450 1700
+NoConn ~ 4425 1600
+NoConn ~ 4425 1500
+NoConn ~ 4425 1400
+Wire Wire Line
+	4425 2200 4700 2200
+Wire Wire Line
+	4425 2000 4700 2000
+Wire Wire Line
+	4425 2100 4700 2100
+Connection ~ 2100 2200
+Wire Wire Line
+	4425 2300 4700 2300
+Wire Wire Line
+	4425 2500 4700 2500
+Wire Wire Line
+	4425 3000 4650 3000
 Wire Wire Line
 	4400 3000 4425 3000
 Connection ~ 4425 3000
+$Comp
+L schema-rescue:ARDUINO_MEGA-shield_arduino-test-rescue SH1
+U 1 1 5E01C684
+P 3250 3800
+F 0 "SH1" H 3262 6593 60  0000 C CNN
+F 1 "ARDUINO_MEGA" H 3262 6487 60  0000 C CNN
+F 2 "SHIELD_ARDUINO:ARDUINO_MEGA_2560_R3_ELL" H 2300 4100 60  0001 C CNN
+F 3 "http://arduino.cc/en/Main/ArduinoBoardMega2560" H 3262 6381 60  0000 C CNN
+	1    3250 3800
+	1    0    0    -1  
+$EndComp
+NoConn ~ 2100 1700
+NoConn ~ 2100 1800
+NoConn ~ 2100 1900
+NoConn ~ 2100 2700
+NoConn ~ 2100 2800
+NoConn ~ 2100 2900
+NoConn ~ 2100 3000
+NoConn ~ 2100 3100
+NoConn ~ 2100 3200
+NoConn ~ 7200 1650
 Wire Wire Line
-	4425 3000 4650 3000
+	7000 2250 7200 2250
+Wire Wire Line
+	7000 2350 7200 2350
+Wire Wire Line
+	7200 1850 7000 1850
+Wire Wire Line
+	7200 1950 7000 1950
 Wire Bus Line
 	4800 1700 4800 3850
 Wire Bus Line

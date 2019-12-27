@@ -14,7 +14,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L test-rescue:ARDUINO_MEGA-shield_arduino SH1
+L schema-rescue:ARDUINO_MEGA-shield_arduino-test-rescue SH1
 U 1 1 5E01C684
 P 3250 3800
 F 0 "SH1" H 3262 6593 60  0000 C CNN
@@ -418,7 +418,7 @@ U 1 1 5E064E95
 P 8300 1400
 F 0 "C2" H 8388 1446 50  0000 L CNN
 F 1 "100u" H 8388 1355 50  0000 L CNN
-F 2 "Capacitors_THT:CP_Radial_D5.0mm_P2.50mm" H 8300 1400 50  0001 C CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm" H 8300 1400 50  0001 C CNN
 F 3 "~" H 8300 1400 50  0001 C CNN
 	1    8300 1400
 	1    0    0    -1  
@@ -498,7 +498,7 @@ U 1 1 5E076114
 P 8400 4150
 F 0 "C4" H 8488 4196 50  0000 L CNN
 F 1 "100u" H 8488 4105 50  0000 L CNN
-F 2 "Capacitors_THT:CP_Radial_D5.0mm_P2.50mm" H 8400 4150 50  0001 C CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P5.00mm" H 8400 4150 50  0001 C CNN
 F 3 "~" H 8400 4150 50  0001 C CNN
 	1    8400 4150
 	1    0    0    -1  
@@ -589,6 +589,58 @@ Wire Wire Line
 	4650 5550 5850 5550
 Wire Wire Line
 	4400 3000 4425 3000
+Connection ~ 4425 3000
+Wire Wire Line
+	4425 3000 4650 3000
+NoConn ~ 2100 4300
+NoConn ~ 2100 4400
+NoConn ~ 2100 5075
+NoConn ~ 2100 4875
+NoConn ~ 2100 4775
+NoConn ~ 2100 4675
+NoConn ~ 2100 4575
+NoConn ~ 2100 5175
+NoConn ~ 2100 5275
+NoConn ~ 2100 5375
+NoConn ~ 2100 5475
+NoConn ~ 2100 5575
+NoConn ~ 2100 5675
+NoConn ~ 2100 5775
+NoConn ~ 2100 5975
+NoConn ~ 2100 6075
+NoConn ~ 2100 6175
+NoConn ~ 2100 6275
+NoConn ~ 4425 6150
+NoConn ~ 4425 6050
+NoConn ~ 4425 5850
+NoConn ~ 4425 5750
+NoConn ~ 4425 5650
+NoConn ~ 4425 5550
+NoConn ~ 4425 5450
+NoConn ~ 4425 5250
+NoConn ~ 4425 5150
+NoConn ~ 4425 5050
+NoConn ~ 4425 4950
+NoConn ~ 4425 4850
+NoConn ~ 4425 4750
+NoConn ~ 4425 4650
+NoConn ~ 4425 4550
+NoConn ~ 4425 4400
+NoConn ~ 4425 4300
+NoConn ~ 4425 4100
+NoConn ~ 4425 4000
+NoConn ~ 4425 3900
+NoConn ~ 4425 3800
+NoConn ~ 4425 3700
+NoConn ~ 4425 3600
+NoConn ~ 4425 3500
+NoConn ~ 4425 3400
+NoConn ~ 4425 3200
+NoConn ~ 4425 3100
+NoConn ~ 4425 2900
+NoConn ~ 4425 2800
+NoConn ~ 4425 2700
+NoConn ~ 4425 2600
 Wire Bus Line
 	4800 1700 4800 3850
 Wire Bus Line
@@ -597,7 +649,4 @@ Wire Bus Line
 	6900 900  6900 2550
 Wire Bus Line
 	1750 900  1750 4150
-Connection ~ 4425 3000
-Wire Wire Line
-	4425 3000 4650 3000
 $EndSCHEMATC
