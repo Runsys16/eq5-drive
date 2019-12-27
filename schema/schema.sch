@@ -635,6 +635,7 @@ Wire Wire Line
 	7200 1850 7000 1850
 Wire Wire Line
 	7200 1950 7000 1950
+NoConn ~ 2100 3400
 Wire Bus Line
 	4800 1700 4800 3850
 Wire Bus Line

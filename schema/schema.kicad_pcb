@@ -2,7 +2,7 @@
 
   (general
     (thickness 1.6)
-    (drawings 82)
+    (drawings 87)
     (tracks 129)
     (zones 0)
     (modules 14)
@@ -1132,7 +1132,7 @@
       (net 19 /A15))
   )
 
-  (module SHIELD_ARDUINO:ARDUINO_MEGA_2560_R3_ELL (layer F.Cu) (tedit 54A4100D) (tstamp 5E03E884)
+  (module SHIELD_ARDUINO:ARDUINO_MEGA_2560_R3_ELL (layer F.Cu) (tedit 54A4100D) (tstamp 5E072B51)
     (at 130.81 90.17)
     (path /5E01C684)
     (fp_text reference SH1 (at 0 -1.27) (layer F.SilkS) hide
@@ -1365,6 +1365,12 @@
     )
   )
 
+  (gr_line (start 182.88 77.47) (end 182.88 81.28) (layer Edge.Cuts) (width 0.05) (tstamp 5E06F45A))
+  (gr_line (start 180.34 74.93) (end 182.88 77.47) (layer Edge.Cuts) (width 0.05))
+  (gr_line (start 180.34 62.23) (end 180.34 74.93) (layer Edge.Cuts) (width 0.05))
+  (gr_line (start 182.88 114.3) (end 182.88 81.28) (layer Edge.Cuts) (width 0.05) (tstamp 5E06F22B))
+  (gr_line (start 180.34 116.84) (end 182.88 114.3) (layer Edge.Cuts) (width 0.05))
+  (gr_line (start 180.34 118.11) (end 180.34 116.84) (layer Edge.Cuts) (width 0.05))
   (gr_text "\n: 7\n: 8\n: 9\n: 10\n: 11  \n: 12\n: 13" (at 106.68 82.55) (layer B.SilkS) (tstamp 5E05EF60)
     (effects (font (size 0.7 0.7) (thickness 0.15)) (justify left mirror))
   )
@@ -1577,7 +1583,6 @@
   )
   (gr_line (start 91.44 118.11) (end 91.44 62.23) (layer Edge.Cuts) (width 0.05) (tstamp 5E01E3CE))
   (gr_line (start 180.34 118.11) (end 91.44 118.11) (layer Edge.Cuts) (width 0.05))
-  (gr_line (start 180.34 62.23) (end 180.34 118.11) (layer Edge.Cuts) (width 0.05))
   (gr_line (start 91.44 62.23) (end 180.34 62.23) (layer Edge.Cuts) (width 0.05))
 
   (segment (start 115.57 73.66) (end 115.57 72.5347) (width 0.25) (layer B.Cu) (net 7))
@@ -1710,7 +1715,7 @@
   (segment (start 119.38 86.7314) (end 110.7014 95.41) (width 0.25) (layer B.Cu) (net 94))
   (segment (start 110.7014 95.41) (end 106.68 95.41) (width 0.25) (layer B.Cu) (net 94))
 
-  (zone (net 89) (net_name GND) (layer F.Cu) (tstamp 5E06171A) (hatch edge 0.508)
+  (zone (net 89) (net_name GND) (layer F.Cu) (tstamp 5E076D31) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
@@ -2381,7 +2386,7 @@
       )
     )
   )
-  (zone (net 89) (net_name GND) (layer B.Cu) (tstamp 5E061717) (hatch edge 0.508)
+  (zone (net 89) (net_name GND) (layer B.Cu) (tstamp 5E076D2E) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
