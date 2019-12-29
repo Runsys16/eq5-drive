@@ -1,14 +1,13 @@
 M48
-; DRILL file {KiCad 5.1.5-52549c5~84~ubuntu16.04.1} date sam. 28 déc. 2019 23:35:36 CET
+; DRILL file {KiCad 5.1.5-52549c5~84~ubuntu18.04.1} date dim. 29 déc. 2019 10:48:16 CET
 ; FORMAT={-:-/ absolute / inch / decimal}
-; #@! TF.CreationDate,2019-12-28T23:35:36+01:00
-; #@! TF.GenerationSoftware,Kicad,Pcbnew,5.1.5-52549c5~84~ubuntu16.04.1
-; #@! TF.FileFunction,Plated,1,2,PTH
+; #@! TF.CreationDate,2019-12-29T10:48:16+01:00
+; #@! TF.GenerationSoftware,Kicad,Pcbnew,5.1.5-52549c5~84~ubuntu18.04.1
 FMAT,2
 INCH
 T1C0.0300
 T2C0.0315
-T3C0.0394
+T3C0.0374
 T4C0.0866
 %
 G90
@@ -101,6 +100,10 @@ X6.95Y-4.1005
 X6.95Y-4.2005
 X6.95Y-4.3005
 T2
+X5.5Y-3.2
+X5.6969Y-3.2
+X6.5Y-3.3
+X6.6969Y-3.3
 X4.55Y-2.9
 X4.55Y-3.4
 X4.65Y-2.9
@@ -117,12 +120,6 @@ X5.15Y-2.9
 X5.15Y-3.4
 X5.25Y-2.9
 X5.25Y-3.4
-X5.5Y-3.2
-X5.6969Y-3.2
-X5.45Y-3.75
-X5.6469Y-3.75
-X4.4531Y-3.75
-X4.65Y-3.75
 X5.9Y-3.7
 X5.9Y-4.2
 X6.0Y-3.7
@@ -139,8 +136,10 @@ X6.5Y-3.7
 X6.5Y-4.2
 X6.6Y-3.7
 X6.6Y-4.2
-X6.5Y-3.3
-X6.6969Y-3.3
+X5.45Y-3.75
+X5.6469Y-3.75
+X4.4531Y-3.75
+X4.65Y-3.75
 T3
 X4.2Y-3.7563
 X4.2Y-3.8547
@@ -156,9 +155,9 @@ X5.0031Y-3.8
 X5.1016Y-3.8
 X5.2Y-3.8
 T4
-X3.7Y-4.5
-X6.95Y-4.5
 X3.75Y-2.6
 X6.7Y-2.6
+X3.7Y-4.5
+X6.95Y-4.5
 T0
 M30
