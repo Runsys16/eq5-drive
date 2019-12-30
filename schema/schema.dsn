@@ -3,7 +3,7 @@
     (string_quote ")
     (space_in_quoted_tokens on)
     (host_cad "KiCad's Pcbnew")
-    (host_version "5.1.5-52549c5~84~ubuntu16.04.1")
+    (host_version "5.1.5-52549c5~84~ubuntu18.04.1")
   )
   (resolution um 10)
   (unit um)
@@ -38,23 +38,23 @@
   )
   (placement
     (component "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical"
-      (place J3 106680 -105410 front 90 (PN Conn_01x05_Male))
+      (place J3 128270 -95090 front 90 (PN Conn_01x05_Male))
     )
     (component "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical"
-      (place J2 132080 -96520 front 180 (PN Conn_01x04_Male))
-      (place J1 151130 -82550 front 0 (PN Conn_01x04_Male))
+      (place J2 137160 -71120 front 270 (PN Conn_01x04_Male))
+      (place J1 137160 -101600 front 270 (PN Conn_01x04_Male))
     )
     (component Capacitor_THT:C_Disc_D5.1mm_W3.2mm_P5.00mm
-      (place C3 118110 -95250 front 180 (PN 100n))
-      (place C1 165100 -83820 front 0 (PN 100n))
+      (place C3 144780 -87630 front 180 (PN 100n))
+      (place C1 139780 -93980 front 0 (PN 100n))
     )
     (component logo:tele
-      (place G1 146050 -74930 front 0 (PN LOGO))
-      (place G0 100330 -73660 front 90 (PN LOGO))
+      (place G1 99060 -74930 front 0 (PN LOGO))
+      (place G0 105410 -81280 front 90 (PN LOGO))
     )
     (component Capacitor_THT:CP_Radial_D8.0mm_P5.00mm
-      (place C4 139700 -81280 front 0 (PN 100u))
-      (place C2 143430 -95250 front 180 (PN 100u))
+      (place C4 143510 -109220 front 0 (PN 100u))
+      (place C2 147320 -74930 front 180 (PN 100u))
     )
     (component MountingHole:MountingHole_2.2mm_M2_Pad
       (place REF2 176530 -114300 front 0 (PN MountingHole_2.2mm_M2_Pad))
@@ -65,8 +65,8 @@
       (place REF** 95250 -66040 front 0 (PN MountingHole_2.2mm_M2_Pad))
     )
     (component "Modules:Pololu_Breakout-16_15.2x20.3mm"
-      (place A2 115570 -86360 front 90 (PN Pololu_Breakout_A4988))
-      (place A1 167640 -93980 front 270 (PN Pololu_Breakout_A4988))
+      (place A2 152400 -87630 front 90 (PN Pololu_Breakout_A4988))
+      (place A1 170180 -93980 front 270 (PN Pololu_Breakout_A4988))
     )
     (component SHIELD_ARDUINO:ARDUINO_MEGA_2560_R3_ELL
       (place SH1 130810 -90170 front 0 (PN ARDUINO_MEGA))
