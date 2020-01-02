@@ -329,7 +329,7 @@ U 1 1 5E0571A5
 P 9100 2050
 F 0 "J1" H 9072 1932 50  0000 R CNN
 F 1 "Conn_01x04_Male" H 9072 2023 50  0000 R CNN
-F 2 "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical" H 9100 2050 50  0001 C CNN
+F 2 "Connector_JST:JST_XH_S4B-XH-A-1_1x04_P2.50mm_Horizontal" H 9100 2050 50  0001 C CNN
 F 3 "~" H 9100 2050 50  0001 C CNN
 	1    9100 2050
 	-1   0    0    1   
@@ -340,7 +340,7 @@ U 1 1 5E057AE7
 P 9150 4800
 F 0 "J2" H 9122 4682 50  0000 R CNN
 F 1 "Conn_01x04_Male" H 9122 4773 50  0000 R CNN
-F 2 "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical" H 9150 4800 50  0001 C CNN
+F 2 "Connector_JST:JST_XH_S4B-XH-A-1_1x04_P2.50mm_Horizontal" H 9150 4800 50  0001 C CNN
 F 3 "~" H 9150 4800 50  0001 C CNN
 	1    9150 4800
 	-1   0    0    1   
@@ -481,7 +481,7 @@ U 1 1 5E08AE58
 P 6050 5750
 F 0 "J3" H 6022 5682 50  0000 R CNN
 F 1 "Conn_01x05_Male" H 6022 5773 50  0000 R CNN
-F 2 "Connector_JST:JST_XH_B5B-XH-A_1x05_P2.50mm_Vertical" H 6050 5750 50  0001 C CNN
+F 2 "Connector_JST:JST_XH_S5B-XH-A-1_1x05_P2.50mm_Horizontal" H 6050 5750 50  0001 C CNN
 F 3 "~" H 6050 5750 50  0001 C CNN
 	1    6050 5750
 	-1   0    0    1   
@@ -512,30 +512,6 @@ Wire Wire Line
 	5400 5850 5850 5850
 Wire Wire Line
 	5850 5950 5400 5950
-Wire Wire Line
-	2100 2500 1400 2500
-Wire Wire Line
-	1400 2500 1400 6850
-Wire Wire Line
-	1400 6850 5000 6850
-Wire Wire Line
-	5000 6850 5000 5750
-Wire Wire Line
-	5000 5750 5850 5750
-Wire Wire Line
-	2100 2600 1450 2600
-Wire Wire Line
-	1450 2600 1450 6800
-Wire Wire Line
-	1450 6800 4950 6800
-Wire Wire Line
-	4950 6800 4950 5650
-Wire Wire Line
-	4950 5650 5850 5650
-Wire Wire Line
-	4650 3000 4650 5550
-Wire Wire Line
-	4650 5550 5850 5550
 NoConn ~ 2100 4300
 NoConn ~ 2100 4400
 NoConn ~ 2100 5075
@@ -601,11 +577,6 @@ Wire Wire Line
 	4425 2300 4700 2300
 Wire Wire Line
 	4425 2500 4700 2500
-Wire Wire Line
-	4425 3000 4650 3000
-Wire Wire Line
-	4400 3000 4425 3000
-Connection ~ 4425 3000
 $Comp
 L schema-rescue:ARDUINO_MEGA-shield_arduino-test-rescue SH1
 U 1 1 5E01C684
@@ -620,7 +591,6 @@ $EndComp
 NoConn ~ 2100 1700
 NoConn ~ 2100 1800
 NoConn ~ 2100 1900
-NoConn ~ 2100 2700
 NoConn ~ 2100 2800
 NoConn ~ 2100 2900
 NoConn ~ 2100 3000
@@ -636,6 +606,49 @@ Wire Wire Line
 Wire Wire Line
 	7200 1950 7000 1950
 NoConn ~ 2100 3400
+Wire Bus Line
+	1350 6600 4650 6600
+Entry Wire Line
+	4750 5750 4650 5850
+Entry Wire Line
+	4750 5650 4650 5750
+Entry Wire Line
+	4750 5550 4650 5650
+Wire Wire Line
+	4750 5550 5850 5550
+Wire Wire Line
+	4750 5650 5850 5650
+Wire Wire Line
+	4750 5750 5850 5750
+Entry Wire Line
+	1450 2500 1350 2600
+Entry Wire Line
+	1450 2600 1350 2700
+Wire Wire Line
+	1450 2500 2100 2500
+Wire Wire Line
+	2100 2600 1450 2600
+Text Label 1450 2500 0    50   ~ 0
+A0
+Text Label 1450 2600 0    50   ~ 0
+A1
+Text Label 4750 5650 0    50   ~ 0
+A1
+Text Label 4750 5750 0    50   ~ 0
+A0
+Entry Wire Line
+	1350 2800 1450 2700
+Wire Wire Line
+	2100 2700 1450 2700
+Text Label 1450 2700 0    50   ~ 0
+A2
+NoConn ~ 4425 3000
+Text Label 4750 5550 0    50   ~ 0
+A2
+Wire Bus Line
+	1350 2500 1350 6600
+Wire Bus Line
+	4650 5350 4650 6600
 Wire Bus Line
 	4800 1700 4800 3850
 Wire Bus Line

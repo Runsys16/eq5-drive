@@ -11,7 +11,7 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 357)
+    (start_pass_no 625)
     (layer_rule F.Cu
       (active on)
       (preferred_direction horizontal)
@@ -79,14 +79,14 @@
     /12 /11 /10 /9 /8 /7 "Net-(SH1-Pad6)" "Net-(SH1-Pad5)"
     "Net-(SH1-Pad4)" "Net-(SH1-Pad3)" "Net-(SH1-Pad1)" /A15 /A14 /A13 /A12 /A11
     /A10 /A9 "Net-(SH1-PadA8)" "Net-(SH1-PadA7)" "Net-(SH1-PadA6)" "Net-(SH1-PadA5)" "Net-(SH1-PadA4)" "Net-(SH1-PadA3)"
-    "Net-(SH1-PadA2)" "Net-(SH1-Pad21/2)" "Net-(SH1-Pad20/2)" "Net-(SH1-PadAREF)" "Net-(SH1-Pad0)" "Net-(SH1-Pad20/1)" "Net-(SH1-Pad21/1)" "Net-(SH1-Pad5V/3)"
-    "Net-(SH1-Pad5V/2)" "Net-(SH1-Pad49)" "Net-(SH1-Pad48)" "Net-(SH1-Pad47)" "Net-(SH1-Pad46)" "Net-(SH1-Pad45)" "Net-(SH1-Pad44)" "Net-(SH1-Pad43)"
-    "Net-(SH1-Pad42)" "Net-(SH1-Pad41)" "Net-(SH1-Pad40)" "Net-(SH1-Pad39)" "Net-(SH1-Pad38)" "Net-(SH1-Pad37)" "Net-(SH1-Pad36)" "Net-(SH1-Pad35)"
-    "Net-(SH1-Pad34)" "Net-(SH1-Pad33)" "Net-(SH1-Pad32)" "Net-(SH1-Pad31)" "Net-(SH1-Pad30)" "Net-(SH1-Pad29)" "Net-(SH1-Pad28)" "Net-(SH1-Pad27)"
-    "Net-(SH1-Pad26)" "Net-(SH1-Pad25)" "Net-(SH1-Pad24)" "Net-(SH1-Pad23)" "Net-(SH1-Pad22)" "Net-(SH1-Pad53)" "Net-(SH1-Pad52)" "Net-(SH1-Pad51)"
-    "Net-(SH1-Pad50)" "Net-(SH1-PadGND4)" "Net-(SH1-Pad3V3)" "Net-(SH1-PadRST)" "Net-(SH1-PadIREF)" "Net-(SH1-PadNC)" "Net-(A1-Pad3)" "Net-(A1-Pad4)"
-    "Net-(A1-Pad5)" "Net-(A1-Pad6)" "Net-(A1-Pad14)" "Net-(A2-Pad3)" "Net-(A2-Pad4)" "Net-(A2-Pad5)" "Net-(A2-Pad6)" "Net-(A2-Pad14)"
-    "Net-(J3-Pad3)" "Net-(J3-Pad4)" "Net-(J3-Pad5)"
+    "Net-(SH1-Pad21/2)" "Net-(SH1-Pad20/2)" "Net-(SH1-PadAREF)" "Net-(SH1-Pad0)" "Net-(SH1-Pad20/1)" "Net-(SH1-Pad21/1)" "Net-(SH1-Pad5V/3)" "Net-(SH1-Pad5V/2)"
+    "Net-(SH1-Pad49)" "Net-(SH1-Pad48)" "Net-(SH1-Pad47)" "Net-(SH1-Pad46)" "Net-(SH1-Pad45)" "Net-(SH1-Pad44)" "Net-(SH1-Pad43)" "Net-(SH1-Pad42)"
+    "Net-(SH1-Pad41)" "Net-(SH1-Pad40)" "Net-(SH1-Pad39)" "Net-(SH1-Pad38)" "Net-(SH1-Pad37)" "Net-(SH1-Pad36)" "Net-(SH1-Pad35)" "Net-(SH1-Pad34)"
+    "Net-(SH1-Pad33)" "Net-(SH1-Pad32)" "Net-(SH1-Pad31)" "Net-(SH1-Pad30)" "Net-(SH1-Pad29)" "Net-(SH1-Pad28)" "Net-(SH1-Pad27)" "Net-(SH1-Pad26)"
+    "Net-(SH1-Pad25)" "Net-(SH1-Pad24)" "Net-(SH1-Pad23)" "Net-(SH1-Pad22)" "Net-(SH1-Pad53)" "Net-(SH1-Pad52)" "Net-(SH1-Pad51)" "Net-(SH1-Pad50)"
+    "Net-(SH1-PadGND4)" "Net-(SH1-Pad3V3)" "Net-(SH1-PadRST)" "Net-(SH1-PadIREF)" "Net-(SH1-PadNC)" "Net-(A1-Pad3)" "Net-(A1-Pad4)" "Net-(A1-Pad5)"
+    "Net-(A1-Pad6)" "Net-(A1-Pad14)" "Net-(A2-Pad3)" "Net-(A2-Pad4)" "Net-(A2-Pad5)" "Net-(A2-Pad6)" "Net-(A2-Pad14)" /A2
+    /A0 /A1 "Net-(SH1-Pad2)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
