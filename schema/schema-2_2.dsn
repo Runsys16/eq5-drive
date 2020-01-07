@@ -1,4 +1,4 @@
-(pcb "/home/rene/Documents/astronomie/logiciel/eq5-drive/schema/schema.dsn"
+(pcb "/home/rene/Documents/astronomie/logiciel/eq5-drive/schema/schema-2_2.dsn"
   (parser
     (string_quote ")
     (space_in_quoted_tokens on)
@@ -38,23 +38,23 @@
   )
   (placement
     (component "Connector_JST:JST_XH_S5B-XH-A-1_1x05_P2.50mm_Horizontal"
-      (place J3 163830 -95250 front 90 (PN Conn_01x05_Male))
+      (place J3 132080 -85090 front 270 (PN Conn_01x05_Male))
     )
     (component "Connector_JST:JST_XH_S4B-XH-A-1_1x04_P2.50mm_Horizontal"
-      (place J2 163830 -78740 front 90 (PN Conn_01x04_Male))
-      (place J1 163830 -109220 front 90 (PN Conn_01x04_Male))
+      (place J2 132080 -71120 front 270 (PN Conn_01x04_Male))
+      (place J1 132080 -101600 front 270 (PN Conn_01x04_Male))
     )
     (component Capacitor_THT:C_Disc_D5.1mm_W3.2mm_P5.00mm
-      (place C3 119380 -90170 front 180 (PN 100n))
-      (place C1 114300 -95250 front 0 (PN 100n))
+      (place C3 144780 -87630 front 180 (PN 100n))
+      (place C1 139780 -93980 front 0 (PN 100n))
     )
     (component logo:tele
       (place G1 99060 -74930 front 0 (PN LOGO))
       (place G0 105410 -81280 front 90 (PN LOGO))
     )
     (component Capacitor_THT:CP_Radial_D8.0mm_P5.00mm
-      (place C4 114300 -105410 front 0 (PN 100u))
-      (place C2 119380 -78740 front 180 (PN 100u))
+      (place C4 143510 -101600 front 0 (PN 100u))
+      (place C2 147320 -81280 front 180 (PN 100u))
     )
     (component MountingHole:MountingHole_2.2mm_M2_Pad
       (place REF2 176530 -114300 front 0 (PN MountingHole_2.2mm_M2_Pad))
@@ -65,8 +65,8 @@
       (place REF** 95250 -66040 front 0 (PN MountingHole_2.2mm_M2_Pad))
     )
     (component "Modules:Pololu_Breakout-16_15.2x20.3mm"
-      (place A2 129540 -83820 front 90 (PN Pololu_Breakout_A4988))
-      (place A1 147320 -92710 front 270 (PN Pololu_Breakout_A4988))
+      (place A2 152400 -87630 front 90 (PN Pololu_Breakout_A4988))
+      (place A1 170180 -93980 front 270 (PN Pololu_Breakout_A4988))
     )
     (component SHIELD_ARDUINO:ARDUINO_MEGA_2560_R3_ELL
       (place SH1 130810 -90170 front 0 (PN ARDUINO_MEGA))
