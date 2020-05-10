@@ -812,24 +812,26 @@ void changeJoy()  {
     countAD = 0;
     countDC = 0;
     
-        long duree = cptMili - cptMiliDbl;
-        //Serial.println( cptMiliDbl, DEC );
-        //Serial.println( duree, DEC );
+    /*
+    long duree = cptMili - cptMiliDbl;
+    //Serial.println( cptMiliDbl, DEC );
+    //Serial.println( duree, DEC );
 
-        if ( duree>100 && duree<2000 )    {
-            Serial.println( "dbl click");
-            bJoy  = true;
-            if ( lastJoy == JOY_DC )    {
-                signeJoyDC *= -1;
-                printRotJoyDC();
-            }
-            else
-            if ( lastJoy == JOY_AD )    {
-                signeJoyAD *= -1;
-                printRotJoyAD();
-            }
+    if ( duree>100 && duree<2000 )    {
+        Serial.println( "dbl click");
+        bJoy  = true;
+        if ( lastJoy == JOY_DC )    {
+            signeJoyDC *= -1;
+            printRotJoyDC();
         }
-        cptMiliDbl = cptMili;
+        else
+        if ( lastJoy == JOY_AD )    {
+            signeJoyAD *= -1;
+            printRotJoyAD();
+        }
+    }
+    */
+    cptMiliDbl = cptMili;
 }
 //-----------------------------------------------------------------------------
 // 400000 pas = 86.5 deg
@@ -993,6 +995,14 @@ void decodeCmd( String s)  {
             Serial.print( pasSideral, DEC );
             Serial.println("");
         }
+        break;
+    case 'V':
+        f = getFloat(&s[1]);
+        if ( i < 0.0 )        break;
+        if ( i > 4000.0 )     break;
+        pasSideral = f;
+        Serial.print( pasSideral, DEC );
+        Serial.println("");
         break;
     case 'c':
         i = getNum(&s[1]);
