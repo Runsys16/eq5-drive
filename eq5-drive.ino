@@ -65,7 +65,6 @@ A4988   drvDC( pinDC_MS1, pinDC_MS2, pinDC_MS3, pinDC_EN, pinDC_RST, pinDC_STEP,
 A4988   drvAD( pinAD_MS1, pinAD_MS2, pinAD_MS3, pinAD_EN, pinAD_RST, pinAD_STEP, pinAD_DIR );
 //------------------------------------------------------------------------------
 long    cptMili = 0;
-long    btnMili = 0;
 long    cptStart = 0;
 //------------------------------------------------------------------------------
 long    cptDC = 0;
@@ -98,16 +97,22 @@ int     nbCherche=PAS_CHERCHE;
 //------------------------------------------------------------------------------
 bool    bRattrapeJeu=false;
 //------------------------------------------------------------------------------
-#define JOY_NONE      1
-#define JOY_DC        2
-#define JOY_AD        3
-int     lastJoy=JOY_NONE;
-bool    stateJoy = false;
-//------------------------------------------------------------------------------
 bool    bRattrapage = false;
 int     iRat = 0;
 int     currentRat = 0;
 float   pulseRat = 0.0;
+//------------------------------------------------------------------------------
+float   E = -3.0;      //exponentiel du joystick
+long    timeMiliJoy = 0;
+
+#define JOY_NONE      1
+#define JOY_DC        2
+#define JOY_AD        3
+
+char    lastJoy=JOY_NONE;
+bool    stateJoy = false;
+
+#define JEU_JOY         25
 //------------------------------------------------------------------------------
 void chercheSuivant();
 //------------------------------------------------------------------------------
@@ -451,6 +456,41 @@ int computeVit(int x)   {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
+int computeVit2(int x)   {
+//#define AFF
+    #ifdef AFF
+    static long timeJoy = 0;
+
+    timeJoy += cptMili - timeMiliJoy;
+    timeMiliJoy = cptMili;
+    #endif
+
+    if ( x <JEU_JOY )         return -1;
+
+    float X = x;
+    X = X / 512.0;
+    float Y = (exp(E*X)-1) / (exp(E)-1);
+    float a = (100.0-6.0)/(0.0-1.0);
+    float b = 100;
+    float y = a * Y + b;
+
+
+    #ifdef AFF
+    if ( timeJoy >= 10000 )
+    {
+        timeJoy = 0;
+        Serial.print( "vitesse Joy : " );
+        Serial.print( x, DEC );
+        Serial.print( "=>" );
+        Serial.println( y, DEC );
+    }
+    #endif
+
+    return (int)y;
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
 void rattrapeJeuDC(int sign)    {
 /*
     Serial.print("Rattrapage de jeu ");
@@ -485,7 +525,6 @@ bool bOldSensDC = true;
 bool bOldSensAD = true;
 void computeJoyDC(int x)    {
     bool bSens;
-    lastJoy = JOY_DC;
 
     x = signeJoyDC * (x-512);
 
@@ -509,10 +548,14 @@ void computeJoyDC(int x)    {
         }
     }
 
-    vitDC = computeVit(x);
+    vitDC = computeVit2(x);
     if ( vitDC == -1 )  {
         drvDC.stop();
         //cptDC = 0;
+    }
+    else
+    {
+        if ( vitAD==-1 )        lastJoy = JOY_DC;
     }
 }
 //-----------------------------------------------------------------------------
@@ -520,7 +563,6 @@ void computeJoyDC(int x)    {
 //------------------------------------------------------------------------------
 void computeJoyAD(int y)    {
     bool bSens;
-    lastJoy = JOY_AD;
     
     y = signeJoyAD * (y-512);
 
@@ -544,43 +586,32 @@ void computeJoyAD(int y)    {
         }
     }
 
-    vitAD = computeVit(y);
+    vitAD = computeVit2(y);
     if ( vitAD == -1 )  {
         drvAD.stop();
         //cptAD = 0;
     }
+    else
+    {
+        if ( vitDC==-1 )    lastJoy = JOY_AD;
+    }
+    
     //else
     //   Serial.println( vitAD, DEC );
     //Serial.println( vitAD, DEC );
 }
 //-----------------------------------------------------------------------------
 //
-// Aller retour en Y en moins de 200ms
-//
-//------------------------------------------------------------------------------
-long startMili = -1;
-void cmdJoy()    {
-    int y = analogRead(pinJoyY);
-    if ( startMili == -1 && y>1000 )    {
-        startMili = cptMili;
-    }
-
-    if ( startMili != -1 && y<20 )    {
-        startMili = cptMili - startMili;
-        //Serial.print( cptMili - startMili, DEC );
-        //Serial.println( "" );
-        if ( startMili < 1800 )       {
-            bJoy = !bJoy;
-            Serial.println( "cmdJoy() ..." );
-        }    
-        startMili = -1;
-    }
-    //Serial.println( y, DEC );
-}
-//-----------------------------------------------------------------------------
-//
 //------------------------------------------------------------------------------
 void loopTestTimerDC()    {
+    static long lTimeAnalog = 0;
+    static long lTimeAnalog_old = 0;
+    
+    lTimeAnalog += cptMili - lTimeAnalog_old;
+    lTimeAnalog_old = cptMili;
+    
+    if ( lTimeAnalog < 1000 )   return;
+    
     int x = analogRead(pinJoyX);
     int y = analogRead(pinJoyY);
     
@@ -592,8 +623,11 @@ void loopTestTimerDC()    {
         Serial.println( "" );
     */
     
-    if ( x<(512-25) || x>(512+25) )     computeJoyDC(x);
-    if ( y<(512-25) || y>(512+25) )     computeJoyAD(y);
+    //if ( x<(512-JEU_JOY) || x>(512+JEU_JOY) )     computeJoyDC(x);
+    //if ( y<(512-JEU_JOY) || y>(512+JEU_JOY) )     computeJoyAD(y);
+    
+    computeJoyDC(x);
+    computeJoyAD(y);
 }
 //-----------------------------------------------------------------------------
 //
@@ -801,7 +835,6 @@ void printInfo()  {
 //
 //------------------------------------------------------------------------------
 void changeJoy()  {
-    static long cptMiliDbl = -1;
     bJoy = !bJoy;
     Serial.print("Change joy ...");
     if ( bJoy )     Serial.println( "OK" );
@@ -811,27 +844,6 @@ void changeJoy()  {
     vitDC = -1;
     countAD = 0;
     countDC = 0;
-    
-    /*
-    long duree = cptMili - cptMiliDbl;
-    //Serial.println( cptMiliDbl, DEC );
-    //Serial.println( duree, DEC );
-
-    if ( duree>100 && duree<2000 )    {
-        Serial.println( "dbl click");
-        bJoy  = true;
-        if ( lastJoy == JOY_DC )    {
-            signeJoyDC *= -1;
-            printRotJoyDC();
-        }
-        else
-        if ( lastJoy == JOY_AD )    {
-            signeJoyAD *= -1;
-            printRotJoyAD();
-        }
-    }
-    */
-    cptMiliDbl = cptMili;
 }
 //-----------------------------------------------------------------------------
 // 400000 pas = 86.5 deg
@@ -1004,6 +1016,15 @@ void decodeCmd( String s)  {
         Serial.print( pasSideral, DEC );
         Serial.println("");
         break;
+    case 'e':
+        f = getFloat(&s[1]);
+        if ( i < -100.0 )       break;
+        if ( i >  100.0 )       break;
+        E = f / 10.0;
+        Serial.print( "Exp joystick : " );
+        Serial.print( f, DEC );
+        Serial.println("\%");
+        break;
     case 'c':
         i = getNum(&s[1]);
         if ( i > 5000 )        {
@@ -1112,31 +1133,59 @@ long startMiliBtn = 0L;
 void loopBtn() {
     int val;
 
-    btnMili++;
-    //if ( btnMili < 500 )      return;
+    static long lTimeButtonDelay = 0;
+    static long lTimeButton = 0;
+    static long lTimeButtonStartDblc = 0;
+    static bool bChangeJoy = false;
     
-    btnMili = 0;
-    val = digitalRead( pinBtn );
-    if ( (val == HIGH) && !stateJoy)   {
-        startMiliBtn = cptMili;
+    lTimeButton          +=  cptMili - startMiliBtn;
+    lTimeButtonStartDblc +=  cptMili - startMiliBtn;
+    lTimeButtonDelay     +=  cptMili - startMiliBtn;
+    
+    startMiliBtn = cptMili;
+    
+    if ( lTimeButtonDelay < 500 )       return;
+    lTimeButtonDelay = 0;
+
+    if ( bChangeJoy && lTimeButtonStartDblc>4000 )
+    {
+        bChangeJoy = false;
+        changeJoy();
+        return;
     }
 
-    if ((val == LOW) && stateJoy)
-    {
-        /*
-        Serial.print( cptMili-startMiliBtn, DEC );
-        Serial.print( " , " );
-        Serial.println( cptMili, DEC );
-        */
-        if ( (cptMili-startMiliBtn) > 200 )
-        {
-            changeJoy();
-        }
-        bOk = true;
-    }
+    val = digitalRead( pinBtn );
     
-    stateJoy = true;
-    if (val == LOW)     stateJoy = false;
+    //if ( !stateJoy && val==LOW )
+   
+    
+    if ( !stateJoy && val==LOW )
+    {
+        Serial.print( lTimeButton );
+        Serial.print( " : bouton " );
+        Serial.print( val );
+        Serial.println();
+
+        if ( lTimeButtonStartDblc < 4000 )
+        {
+            bChangeJoy = false;
+            lTimeButtonStartDblc = 0;
+            if ( lastJoy == JOY_AD )    { signeJoyAD *= -1; printRotJoyAD(); }
+            if ( lastJoy == JOY_DC )    { signeJoyDC *= -1; printRotJoyDC(); }
+            bJoy = true;
+        }
+        else
+        {
+            lTimeButtonStartDblc = 0;
+            bChangeJoy = true;            //lTimeButtonStartDblc = 0;
+            bOk = true;
+        }
+    }
+
+    if (val == LOW)     stateJoy = true;
+    else                stateJoy = false;
+
+    
 }
 //-----------------------------------------------------------------------------
 //
@@ -1209,7 +1258,7 @@ void computePosition() {
                     Serial.print( iRat, DEC);
                     Serial.println(" pas ");
 
-                    bRattrapage = true;
+                    if ( !bJoy )    bRattrapage = true;
                     currentRat = 0;
                 }
                 bRattrapeJeu = false;
