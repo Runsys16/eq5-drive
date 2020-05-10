@@ -1023,11 +1023,15 @@ void decodeCmd( String s)  {
         tt = s[1];
         if ( tt == 'a' )   {
             drvAD.changeRot();
-            Serial.println("As droite sens: ");
+            Serial.print("As droite sens : ");
+            if ( drvAD.getRot() )       Serial.println("normal");
+            else                        Serial.println("inverse");
         }
         else  if ( tt == 'd' )   {
             drvDC.changeRot();
-            Serial.println("Declinaison sens: ");
+            Serial.print("Declinaison sens : ");
+            if ( drvDC.getRot() )       Serial.println("normal");
+            else                        Serial.println("inverse");
         }
         else  if ( tt == 's' )   {
             bSensSideral = !bSensSideral;
