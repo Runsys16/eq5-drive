@@ -126,7 +126,7 @@ void chercheSuivant();
 //
 //	!!! Attention : (TRES IMPORTANT) les librairies ont été modifiées pour utiliser la nouvelle gestion du temps
 //	La variable cpt est utilisé pour USB  voir fichier lib/print.cpp
-//------------------------------------------------------------------------------
+//-----------------------------------------------problem-------------------------------
 ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
 {
     cptMili++;
@@ -467,11 +467,14 @@ int computeVit2(int x)   {
 
     if ( x <JEU_JOY )         return -1;
 
+    #define MAX_VIT 150.0
+    #define MIN_VIT 6.0
+
     float X = x;
     X = X / 512.0;
     float Y = (exp(E*X)-1) / (exp(E)-1);
-    float a = (100.0-6.0)/(0.0-1.0);
-    float b = 100;
+    float a = (MAX_VIT - MIN_VIT)/(0.0-1.0);
+    float b = MAX_VIT;
     float y = a * Y + b;
 
 
@@ -532,7 +535,7 @@ void computeJoyDC(int x)    {
         bSens = true;
         drvDC.setSens(true);
         if ( bSens != bOldSensDC )  {
-            rattrapeJeuDC(1);
+            //rattrapeJeuDC(1);
             bOldSensDC = true;
             return;
         }
@@ -542,7 +545,7 @@ void computeJoyDC(int x)    {
         drvDC.setSens(false);
         x = -x;
         if ( bSens != bOldSensDC )  {
-            rattrapeJeuDC(-1);
+            //rattrapeJeuDC(-1);
             bOldSensDC = false;
             return;
         }
@@ -570,7 +573,7 @@ void computeJoyAD(int y)    {
         bSens = true;
         drvAD.setSens(true);
         if ( bSens != bOldSensAD )  {
-            rattrapeJeuAD(1);
+            //rattrapeJeuAD(1);
             bOldSensAD = true;
             return;
         }
@@ -580,7 +583,7 @@ void computeJoyAD(int y)    {
         drvAD.setSens(false);
         y = -y;
         if ( bSens != bOldSensAD )  {
-            rattrapeJeuAD(-1);
+            //rattrapeJeuAD(-1);
             bOldSensAD = false;
             return;
         }
@@ -603,31 +606,61 @@ void computeJoyAD(int y)    {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void loopTestTimerDC()    {
-    static long lTimeAnalog = 0;
-    static long lTimeAnalog_old = 0;
-    
-    lTimeAnalog += cptMili - lTimeAnalog_old;
+volatile long lTimeJoy = 0;
+volatile long lTimeAnalogPrint = 0;
+         long lTimeAnalog_old = 0;
+//------------------------------------------------------------------------------
+void loopReadJoystick()    {
+//#define DEBUG
+    long elapsedTime = cptMili - lTimeAnalog_old;
+       
+    lTimeJoy         += elapsedTime;
+    lTimeAnalogPrint += elapsedTime;
     lTimeAnalog_old = cptMili;
     
-    if ( lTimeAnalog < 1000 )   return;
-    
+    if ( lTimeJoy < 2000 )   return;
+    lTimeJoy = 0;
+
+    #ifdef DEBUG
+    Serial.print( cptMili, DEC );
+    Serial.println( " time" );
+    #endif
+        
     int x = analogRead(pinJoyX);
     int y = analogRead(pinJoyY);
-    
-    /*
-        Serial.print( "JoyXY x=" );
-        Serial.print( x, DEC );
-        Serial.print( " y=" );
-        Serial.print( y, DEC );
-        Serial.println( "" );
-    */
-    
-    //if ( x<(512-JEU_JOY) || x>(512+JEU_JOY) )     computeJoyDC(x);
-    //if ( y<(512-JEU_JOY) || y>(512+JEU_JOY) )     computeJoyAD(y);
-    
+
+    #ifdef DEBUG
+    Serial.print( cptMili, DEC );
+    Serial.println( " read" );
+    #endif    
+
     computeJoyDC(x);
     computeJoyAD(y);
+
+    #ifdef DEBUG
+    Serial.print( cptMili, DEC );
+    Serial.println( " comp" );
+    #endif
+
+    #ifdef DEBUG
+    if ( lTimeAnalogPrint > 10000L )
+    {
+        Serial.print( lTimeAnalogPrint, DEC );
+        Serial.print( " - JoyXY (" );
+        Serial.print( x, DEC );
+        Serial.print( ", " );
+        Serial.print( y, DEC );
+        Serial.print( ") (" );
+        Serial.print( vitDC, DEC );
+        Serial.print( ", " );
+        Serial.print( vitAD, DEC );
+        Serial.println( ")" );
+        lTimeAnalogPrint = 0;
+    }    
+    #endif
+    //if ( x<(512-JEU_JOY) || x>(512+JEU_JOY) )     computeJoyDC(x);
+    //if ( y<(512-JEU_JOY) || y>(512+JEU_JOY) )     computeJoyAD(y);
+//#undef DEBUG    
 }
 //-----------------------------------------------------------------------------
 //
@@ -1311,7 +1344,7 @@ void loop() {
     
     if ( bCherche )                 chercheSuivant();
 
-    if ( bJoy && !bRattrapeJeu )    loopTestTimerDC();
+    if ( bJoy && !bRattrapeJeu )    loopReadJoystick();
     else                            computePosition();
 
     loopBtn();
