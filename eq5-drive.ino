@@ -643,7 +643,7 @@ void loopReadJoystick()    {
     Serial.println( " comp" );
     #endif
 
-#define DEBUG
+//#define DEBUG
     #ifdef DEBUG
     if ( lTimeAnalogPrint > 10000L )
     {
@@ -665,7 +665,7 @@ void loopReadJoystick()    {
     #endif
     //if ( x<(512-JEU_JOY) || x>(512+JEU_JOY) )     computeJoyDC(x);
     //if ( y<(512-JEU_JOY) || y>(512+JEU_JOY) )     computeJoyAD(y);
-#undef DEBUG    
+//#undef DEBUG    
 }
 //-----------------------------------------------------------------------------
 //
@@ -1169,6 +1169,7 @@ void readCommand()  {
 //------------------------------------------------------------------------------
 long startMiliBtn = 0L;
 void loopBtn() {
+//#define DEBUG
     int val;
 
     static long lTimeButtonDelay = 0;
@@ -1199,10 +1200,12 @@ void loopBtn() {
     
     if ( !stateJoy && val==LOW )
     {
+        #ifdef DEBUG
         Serial.print( lTimeButton );
         Serial.print( " : bouton " );
         Serial.print( val );
         Serial.println();
+        #endif
 
         if ( lTimeButtonStartDblc < 4000 )
         {
@@ -1210,6 +1213,7 @@ void loopBtn() {
             lTimeButtonStartDblc = 0;
             if ( lastJoy == JOY_AD )    { signeJoyAD *= -1; printRotJoyAD(); }
             if ( lastJoy == JOY_DC )    { signeJoyDC *= -1; printRotJoyDC(); }
+            Serial.println( "dbl click" );
             bJoy = true;
         }
         else
@@ -1223,7 +1227,7 @@ void loopBtn() {
     if (val == LOW)     stateJoy = true;
     else                stateJoy = false;
 
-    
+//undef DEBUG    
 }
 //-----------------------------------------------------------------------------
 //
