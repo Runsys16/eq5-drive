@@ -490,6 +490,7 @@ int computeVit2(int x)   {
     #endif
 
     return (int)y;
+#undef AFF
 }
 //-----------------------------------------------------------------------------
 //
@@ -642,25 +643,29 @@ void loopReadJoystick()    {
     Serial.println( " comp" );
     #endif
 
+#define DEBUG
     #ifdef DEBUG
     if ( lTimeAnalogPrint > 10000L )
     {
-        Serial.print( lTimeAnalogPrint, DEC );
-        Serial.print( " - JoyXY (" );
-        Serial.print( x, DEC );
-        Serial.print( ", " );
-        Serial.print( y, DEC );
-        Serial.print( ") (" );
-        Serial.print( vitDC, DEC );
-        Serial.print( ", " );
-        Serial.print( vitAD, DEC );
-        Serial.println( ")" );
-        lTimeAnalogPrint = 0;
+        if ( vitAD != -1 || vitDC != -1 )
+        {
+            Serial.print( lTimeAnalogPrint, DEC );
+            Serial.print( " - JoyXY (" );
+            Serial.print( x, DEC );
+            Serial.print( ", " );
+            Serial.print( y, DEC );
+            Serial.print( ") (" );
+            Serial.print( vitDC, DEC );
+            Serial.print( ", " );
+            Serial.print( vitAD, DEC );
+            Serial.println( ")" );
+            lTimeAnalogPrint = 0;
+        }
     }    
     #endif
     //if ( x<(512-JEU_JOY) || x>(512+JEU_JOY) )     computeJoyDC(x);
     //if ( y<(512-JEU_JOY) || y>(512+JEU_JOY) )     computeJoyAD(y);
-//#undef DEBUG    
+#undef DEBUG    
 }
 //-----------------------------------------------------------------------------
 //
