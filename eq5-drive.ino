@@ -13,6 +13,7 @@
 #define TIMER3          1600        //0.1ms
 //------------------------------------------------------------------------------
 #define PAS_CHERCHE     150
+#define VERSION         "1.0.0"
 //------------------------------------------------------------------------------
 //
 // Mesure le 7/5/2018
@@ -809,6 +810,8 @@ void printInfo()  {
     dest_dc = countDC;
 
     Serial.println("=INFO START=======================");
+    Serial.print( "Version : " );
+    Serial.println( VERSION );
     Serial.print( "Asc Dr : " );
     Serial.print( pasToAd(cad) );
     Serial.print( " , " );
@@ -1018,7 +1021,7 @@ void decodeCmd( String s)  {
         Serial.println("--STOP--");
         break;
     //-------------------------------------------------------------------------
-    // Initi position monture
+    // Initialise position monture
     //-------------------------------------------------------------------------
     case 'i' :
         tt = s[1];
@@ -1046,11 +1049,17 @@ void decodeCmd( String s)  {
             Serial.println("Erreur");
         }
         break;
+    //-------------------------------------------------------------------------
+    // Reset valeur pas 
+    //-------------------------------------------------------------------------
     case 'r':
         drvDC.resetCount();
         drvAD.resetCount();
         Serial.println("Reset valeur courante");
         break;
+    //-------------------------------------------------------------------------
+    // Affiche ou modifie la vitesse de rotation de la terre
+    //-------------------------------------------------------------------------
     case 'v':
         i = getNum(&s[1]);
         if ( i < 0 )        i = -i;
@@ -1070,6 +1079,9 @@ void decodeCmd( String s)  {
             Serial.println("");
         }
         break;
+    //-------------------------------------------------------------------------
+    // Affiche ou modifie de la variable pasSideral
+    //-------------------------------------------------------------------------
     case 'V':
         f = getFloat(&s[1]);
         if ( i < 0.0 )        break;
@@ -1078,6 +1090,9 @@ void decodeCmd( String s)  {
         Serial.print( pasSideral, DEC );
         Serial.println("");
         break;
+    //-------------------------------------------------------------------------
+    // modifie la valeur de l'expo joystick
+    //-------------------------------------------------------------------------
     case 'e':
         f = getFloat(&s[1]);
         if ( i < -100.0 )       break;
@@ -1087,6 +1102,9 @@ void decodeCmd( String s)  {
         Serial.print( f, DEC );
         Serial.println("\%");
         break;
+    //-------------------------------------------------------------------------
+    // modifie/affiche la valeur de conversion pas<=>degré
+    //-------------------------------------------------------------------------
     case 'c':
         i = getNum(&s[1]);
         if ( i > 20000 )        {
@@ -1096,12 +1114,20 @@ void decodeCmd( String s)  {
         Serial.print( i, DEC );
         Serial.println("");
         break;
+    //-------------------------------------------------------------------------
+    // Autorise/interdi l'affichage printPos
+    //-------------------------------------------------------------------------
     case 'p':
         bPrintPos = !bPrintPos;
         Serial.print("PrintPos : ");
         if ( bPrintPos )        Serial.println( "OUI" );
         else                    Serial.println( "NON" );
         break;
+    //-------------------------------------------------------------------------
+    // Change le sens des deplacements asc droite (sa), declinaison (sd), rotation siderale (ss)
+    // et joystick (sA, sD)
+    // commande s[a,d,s,A,D]
+    //-------------------------------------------------------------------------
     case 's':
         tt = s[1];
         if ( tt == 'a' )   {
@@ -1134,12 +1160,18 @@ void decodeCmd( String s)  {
             Serial.println("Erreur");
         }
         break;
+    //-------------------------------------------------------------------------
+    // Autorise/interdi le suivi de rotation de la terre (rotation siderale)
+    //-------------------------------------------------------------------------
     case 'S':
         bSuivi = !bSuivi;
         Serial.print("Suivi rotation terre : ");
         if ( bSuivi )       Serial.println( "OUI" );
         else                Serial.println( "NON" );
         break;
+    //-------------------------------------------------------------------------
+    // Effectue un carré de rechercher
+    //-------------------------------------------------------------------------
     case 'C':
         if ( bCherche )     { 
           bCherche = false;
