@@ -13,7 +13,7 @@
 #define TIMER3          1600        //0.1ms
 //------------------------------------------------------------------------------
 #define PAS_CHERCHE     150
-#define VERSION         "1.0.0"
+#define VERSION         "1.0.1"
 //------------------------------------------------------------------------------
 //
 // Mesure le 7/5/2018
@@ -809,7 +809,7 @@ void printInfo()  {
     dest_ad = countAD;
     dest_dc = countDC;
 
-    Serial.println("=INFO START=======================");
+    Serial.println("=INFO START");
     Serial.print( "Version : " );
     Serial.println( VERSION );
     Serial.print( "Asc Dr : " );
@@ -836,7 +836,7 @@ void printInfo()  {
     Serial.print( dest_dc, DEC );
     Serial.println( "" );
 
-    Serial.println("==================================");
+    Serial.println("");
     Serial.print("Convertion (pas/deg) : " );
     Serial.print( convert, DEC );
     Serial.print("   pas/deg ");
@@ -845,7 +845,7 @@ void printInfo()  {
 
     printInfoVitsseSiderale();
 
-    Serial.println("==================================");
+    Serial.println("");
     Serial.print("Rotation Declinaison : " );
     if (drvDC.getRot())     Serial.println("normal");
     else                    Serial.println("inverse");
@@ -856,7 +856,7 @@ void printInfo()  {
     printRotJoyAD();
     printRotJoyDC();
     
-    Serial.println("==================================");
+    Serial.println("");
     Serial.print( "Rotation terre " );
     printInfoOuiNon( bSuivi );
     Serial.println("");
@@ -870,7 +870,7 @@ void printInfo()  {
     Serial.println("");
 
     printInfoTime();
-    Serial.println("=INFO STOP========================");
+    Serial.println("=INFO STOP");
 }
 //-----------------------------------------------------------------------------
 //
