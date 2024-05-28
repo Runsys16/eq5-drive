@@ -2,6 +2,7 @@
 //                               EQ-TEST.INO
 //------------------------------------------------------------------------------
 #define PROTO_ARDUINO   1
+#include <EEPROM.h>
 #include "port.h"
 #include "A4988.h"
 //------------------------------------------------------------------------------
@@ -13,8 +14,15 @@
 #define TIMER3          1600        //0.1ms
 //------------------------------------------------------------------------------
 #define PAS_CHERCHE     150
-#define VERSION         "1.0.1"
+#define VERSION         "1.0.2"
 //------------------------------------------------------------------------------
+#define EEPROM_MAGIC0	'#'
+#define EEPROM_MAGIC1	'!'
+#define EEPROM_AD		2
+#define EEPROM_DC		3
+#define EEPROM_RETOUR   4
+#define EEPROM_SUIVI    5
+//------------_------------------------------------------------------------------
 //
 // Mesure le 7/5/2018
 //---------------------
@@ -243,6 +251,59 @@ void setupTimer3() {
 }
 //------------------------------------------------------------------------------
 //
+// Ecriture EEPROM EEPROM
+// 
+//
+//------------------------------------------------------------------------------
+void writeEEPROM( int adr, char val)
+{
+	EEPROM.write(adr, val);
+}
+//------------------------------------------------------------------------------
+//
+// Ecriture par defaut EEPROM
+// 
+//
+//------------------------------------------------------------------------------
+void writeDefaultEEPROM()
+{
+	EEPROM.write(0, 				EEPROM_MAGIC0);
+	EEPROM.write(1, 				EEPROM_MAGIC1);
+	EEPROM.write( EEPROM_AD, 		0);
+	EEPROM.write( EEPROM_DC, 		0);
+	EEPROM.write( EEPROM_RETOUR, 	0);
+	EEPROM.write( EEPROM_SUIVI, 	0);
+}
+//------------------------------------------------------------------------------
+//
+// Read EEPROM
+// 
+//
+//------------------------------------------------------------------------------
+void readEEPROM()
+{
+	char MAGIC0, MAGIC1;
+
+	MAGIC0 = EEPROM[0];
+	MAGIC1 = EEPROM[1];
+
+	if ( (MAGIC0 != EEPROM_MAGIC0) || (MAGIC1 != EEPROM_MAGIC1) )
+	{
+		writeDefaultEEPROM();
+		return;
+	}
+	
+	if ( EEPROM[EEPROM_AD] )		    drvAD.normalRot();
+	else								drvAD.inverseRot();
+	
+	if ( EEPROM[EEPROM_DC] )		    drvDC.normalRot();
+	else								drvDC.inverseRot();
+	
+	bPrintPos = ((EEPROM[EEPROM_RETOUR]==0) ? false: true);
+	bSuivi    = ((EEPROM[EEPROM_SUIVI]==0) ? false: true);
+}
+//------------------------------------------------------------------------------
+//
 // temps sideral moyen 23h56m4s
 // = 23.934444444 h = 86164.0s
 //
@@ -272,8 +333,8 @@ void setup() {
     vitAD = -1;
     vitDC = -1;
 
-    //drvDC.inverseRot();
-    drvDC.normalRot();
+    drvDC.inverseRot();
+    //drvDC.normalRot();
 
     //drvAD.inverseRot();
     drvAD.normalRot();
@@ -283,6 +344,8 @@ void setup() {
     pasSideral  = 10000.0 / (DEG2PAS(vitSiderale));
   
     //pasSideral = 10;
+    
+    readEEPROM();
 }
 //------------------------------------------------------------------------------
 //
@@ -1122,6 +1185,10 @@ void decodeCmd( String s)  {
         Serial.print("PrintPos : ");
         if ( bPrintPos )        Serial.println( "OUI" );
         else                    Serial.println( "NON" );
+        
+        if ( bPrintPos )        writeEEPROM( EEPROM_RETOUR, 1 );
+        else                    writeEEPROM( EEPROM_RETOUR, 0 );
+        
         break;
     //-------------------------------------------------------------------------
     // Change le sens des deplacements asc droite (sa), declinaison (sd), rotation siderale (ss)
@@ -1135,12 +1202,18 @@ void decodeCmd( String s)  {
             Serial.print("As droite sens : ");
             if ( drvAD.getRot() )       Serial.println("normal");
             else                        Serial.println("inverse");
+
+            if ( drvAD.getRot() )       writeEEPROM(EEPROM_AD, 1);
+            else                        writeEEPROM(EEPROM_AD, 0);
         }
         else  if ( tt == 'd' )   {
             drvDC.changeRot();
             Serial.print("Declinaison sens : ");
             if ( drvDC.getRot() )       Serial.println("normal");
             else                        Serial.println("inverse");
+
+            if ( drvDC.getRot() )       writeEEPROM(EEPROM_DC, 1);
+            else                        writeEEPROM(EEPROM_DC, 0);
         }
         else  if ( tt == 's' )   {
             bSensSideral = !bSensSideral;
@@ -1166,8 +1239,12 @@ void decodeCmd( String s)  {
     case 'S':
         bSuivi = !bSuivi;
         Serial.print("Suivi rotation terre : ");
+
         if ( bSuivi )       Serial.println( "OUI" );
         else                Serial.println( "NON" );
+
+        if ( bSuivi )       writeEEPROM( EEPROM_SUIVI, 1 );
+        else                writeEEPROM( EEPROM_SUIVI, 0 );
         break;
     //-------------------------------------------------------------------------
     // Effectue un carré de rechercher
@@ -1411,7 +1488,7 @@ void chercheSuivant()   {
 //long c0 = 0;
 void loop() {
     if ( Serial.available() )       readCommand();
-    
+
     if ( bCherche )                 chercheSuivant();
 
     if ( bJoy && !bRattrapeJeu )    loopReadJoystick();
