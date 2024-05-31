@@ -18,10 +18,15 @@
 //------------------------------------------------------------------------------
 #define EEPROM_MAGIC0	'#'
 #define EEPROM_MAGIC1	'!'
-#define EEPROM_AD		2
-#define EEPROM_DC		3
-#define EEPROM_RETOUR   4
-#define EEPROM_SUIVI    5
+#define EEPROM_VER		1
+//------------------------------------------------------------------------------
+#define EE_ADR_MAGIC0	0
+#define EE_ADR_MAGIC1	1
+#define EE_ADR_VER		2
+#define EE_ADR_AD		3
+#define EE_ADR_DC		4
+#define EE_ADR_RETOUR   5
+#define EE_ADR_SUIVI    6
 //------------_------------------------------------------------------------------
 //
 // Mesure le 7/5/2018
@@ -103,6 +108,7 @@ int     signeJoyDC = 1;
 bool    bCherche=false;
 int     uCherche=0;
 int     nbCherche=PAS_CHERCHE;
+int     defVitCherche = 240;
 //------------------------------------------------------------------------------
 bool    bRattrapeJeu=false;
 //------------------------------------------------------------------------------
@@ -150,8 +156,11 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
             }
 	    }
 	}
-
-
+	//---------------------------------------------------------------------------------
+	//
+	// DECLINAISON		DC
+	//
+	//---------------------------------------------------------------------------------
 	if ( vitDC != -1 ) {
         if ( !drvDC.getStep() ) {
             if ( cptDC >= vitDC ) {
@@ -167,7 +176,11 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
         }
         cptDC++;												    //  incremente le var.compteur de temps
     }
-
+	//---------------------------------------------------------------------------------
+	//
+	// ASCENTION DROITE   AD
+	//
+	//---------------------------------------------------------------------------------
 	if ( vitAD != -1 ) {
 	    if ( !drvAD.getStep() ) {
 	        if ( cptAD >= vitAD ) {
@@ -183,8 +196,13 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
         }
 	    cptAD++;												    //  incremente le var.compteur de temps
 	}
-	//   Suivi rotation la terre
-	else if ( bSuivi || bRattrapage )   {
+	//---------------------------------------------------------------------------------
+	//
+	//   SUIVI ROTATION TERRE OU RATRAPAGE
+	//
+	//---------------------------------------------------------------------------------
+	else
+	if ( bSuivi || bRattrapage )   {
 	    //-----------------------------------
 	    if ( bRattrapage )   {
 	        drvAD.setSens(bSensSideral);
@@ -257,7 +275,13 @@ void setupTimer3() {
 //------------------------------------------------------------------------------
 void writeEEPROM( int adr, char val)
 {
-	EEPROM.write(adr, val);
+	EEPROM.update(adr, val);
+	
+    Serial.print( "Ecriture EEPROM " );
+    Serial.print( adr, HEX );
+    Serial.print( ":" );
+    Serial.print( val, DEC );
+    Serial.println( "" );
 }
 //------------------------------------------------------------------------------
 //
@@ -267,12 +291,15 @@ void writeEEPROM( int adr, char val)
 //------------------------------------------------------------------------------
 void writeDefaultEEPROM()
 {
-	EEPROM.write(0, 				EEPROM_MAGIC0);
-	EEPROM.write(1, 				EEPROM_MAGIC1);
-	EEPROM.write( EEPROM_AD, 		0);
-	EEPROM.write( EEPROM_DC, 		0);
-	EEPROM.write( EEPROM_RETOUR, 	0);
-	EEPROM.write( EEPROM_SUIVI, 	0);
+	EEPROM.write( EE_ADR_MAGIC0, 	EEPROM_MAGIC0 );
+	EEPROM.write (EE_ADR_MAGIC1, 	EEPROM_MAGIC1 );
+	EEPROM.write( EE_ADR_VER, 		EEPROM_VER );
+	EEPROM.write( EE_ADR_AD, 		0 );
+	EEPROM.write( EE_ADR_DC, 		0 );
+	EEPROM.write( EE_ADR_RETOUR, 	0 );
+	EEPROM.write( EE_ADR_SUIVI, 	0 );
+
+    Serial.println( "Init EEPROM" );
 }
 //------------------------------------------------------------------------------
 //
@@ -282,25 +309,25 @@ void writeDefaultEEPROM()
 //------------------------------------------------------------------------------
 void readEEPROM()
 {
-	char MAGIC0, MAGIC1;
+	char MAGIC0, MAGIC1, VER;
 
-	MAGIC0 = EEPROM[0];
-	MAGIC1 = EEPROM[1];
+	MAGIC0 	= EEPROM[EE_ADR_MAGIC0];
+	MAGIC1 	= EEPROM[EE_ADR_MAGIC1];
+	VER		= EEPROM[EE_ADR_VER];
 
-	if ( (MAGIC0 != EEPROM_MAGIC0) || (MAGIC1 != EEPROM_MAGIC1) )
+	if 	( 	(MAGIC0 != EEPROM_MAGIC0)
+		 || (MAGIC1 != EEPROM_MAGIC1) 
+		 || (VER    != EEPROM_VER) 
+		)
 	{
 		writeDefaultEEPROM();
 		return;
 	}
 	
-	if ( EEPROM[EEPROM_AD] )		    drvAD.normalRot();
-	else								drvAD.inverseRot();
-	
-	if ( EEPROM[EEPROM_DC] )		    drvDC.normalRot();
-	else								drvDC.inverseRot();
-	
-	bPrintPos = ((EEPROM[EEPROM_RETOUR]==0) ? false: true);
-	bSuivi    = ((EEPROM[EEPROM_SUIVI]==0) ? false: true);
+	drvAD.setRot( (EEPROM[EE_ADR_AD]==0) ? false: true );
+	drvDC.setRot( (EEPROM[EE_ADR_DC]==0) ? false: true );
+	bPrintPos =   (EEPROM[EE_ADR_RETOUR]==0) ? false: true;
+	bSuivi    =   (EEPROM[EE_ADR_SUIVI]==0) ? false: true;
 }
 //------------------------------------------------------------------------------
 //
@@ -333,18 +360,12 @@ void setup() {
     vitAD = -1;
     vitDC = -1;
 
-    drvDC.inverseRot();
-    //drvDC.normalRot();
-
-    //drvAD.inverseRot();
+	drvDC.normalRot();
     drvAD.normalRot();
-    
-    
+        
     vitSiderale = (360.0/86164.1)-1.9*(0.09717608/3600);
     pasSideral  = 10000.0 / (DEG2PAS(vitSiderale));
   
-    //pasSideral = 10;
-    
     readEEPROM();
 }
 //------------------------------------------------------------------------------
@@ -1130,12 +1151,14 @@ void decodeCmd( String s)  {
         if ( i>=6 )         defVit = i;
         
         if ( i != 0 )   {        
-            Serial.print("Vitesse : " );
+            Serial.print("defVit : " );
             Serial.print( defVit, DEC );
             Serial.println("");
         }
         else    {
-            Serial.print("V. siderale : " );
+            Serial.print("defVit : " );
+            Serial.print( defVit, DEC );
+            Serial.print(" V. siderale : " );
             Serial.print( vitSiderale, DEC );
             Serial.print(" pas sideral : " );
             Serial.print( pasSideral, DEC );
@@ -1183,11 +1206,17 @@ void decodeCmd( String s)  {
     case 'p':
         bPrintPos = !bPrintPos;
         Serial.print("PrintPos : ");
-        if ( bPrintPos )        Serial.println( "OUI" );
-        else                    Serial.println( "NON" );
+        if ( bPrintPos )
+        {
+        	Serial.println( "OUI" );
+        	writeEEPROM( EE_ADR_RETOUR, 1 );
+        }
+        else
+        {
+        	Serial.println( "NON" );
+        	writeEEPROM( EE_ADR_RETOUR, 0 );
+        }
         
-        if ( bPrintPos )        writeEEPROM( EEPROM_RETOUR, 1 );
-        else                    writeEEPROM( EEPROM_RETOUR, 0 );
         
         break;
     //-------------------------------------------------------------------------
@@ -1200,20 +1229,32 @@ void decodeCmd( String s)  {
         if ( tt == 'a' )   {
             drvAD.changeRot();
             Serial.print("As droite sens : ");
-            if ( drvAD.getRot() )       Serial.println("normal");
-            else                        Serial.println("inverse");
+            if ( drvAD.getRot() )
+            {
+            	Serial.println("normal");
+            	writeEEPROM(EE_ADR_AD, 1);
+            }
+            else
+            {
+            	Serial.println("inverse");
+            	writeEEPROM(EE_ADR_AD, 0);
+            }
 
-            if ( drvAD.getRot() )       writeEEPROM(EEPROM_AD, 1);
-            else                        writeEEPROM(EEPROM_AD, 0);
         }
         else  if ( tt == 'd' )   {
             drvDC.changeRot();
             Serial.print("Declinaison sens : ");
-            if ( drvDC.getRot() )       Serial.println("normal");
-            else                        Serial.println("inverse");
+            if ( drvDC.getRot() )
+            {
+            	Serial.println("normal");
+            	writeEEPROM(EE_ADR_DC, 1);
+            }
+            else
+            {
+            	Serial.println("inverse");
+            	writeEEPROM(EE_ADR_DC, 0);
+            }
 
-            if ( drvDC.getRot() )       writeEEPROM(EEPROM_DC, 1);
-            else                        writeEEPROM(EEPROM_DC, 0);
         }
         else  if ( tt == 's' )   {
             bSensSideral = !bSensSideral;
@@ -1240,11 +1281,17 @@ void decodeCmd( String s)  {
         bSuivi = !bSuivi;
         Serial.print("Suivi rotation terre : ");
 
-        if ( bSuivi )       Serial.println( "OUI" );
-        else                Serial.println( "NON" );
+        if ( bSuivi )
+        {
+        	Serial.println( "OUI" );
+        	writeEEPROM( EE_ADR_SUIVI, 1 );
+        }
+        else
+        {
+        	Serial.println( "NON" );
+        	writeEEPROM( EE_ADR_SUIVI, 0 );
+        }
 
-        if ( bSuivi )       writeEEPROM( EEPROM_SUIVI, 1 );
-        else                writeEEPROM( EEPROM_SUIVI, 0 );
         break;
     //-------------------------------------------------------------------------
     // Effectue un carré de rechercher
@@ -1460,22 +1507,22 @@ void chercheSuivant()   {
 
     switch( uCherche )  {
         case 0:
-            vitAD = defVit;
+            vitAD = defVitCherche;
             countAD = drvAD.getCount() + nbCherche;
             setSens( &drvAD, (countAD - drvAD.getCount()) );
             break;
         case 1:
-            vitDC = defVit;
+            vitDC = defVitCherche;
             countDC = drvDC.getCount() + nbCherche;
             setSens( &drvDC, (countDC - drvDC.getCount()) );
             break;
         case 2:
-            vitAD = defVit;
+            vitAD = defVitCherche;
             countAD = drvAD.getCount() - nbCherche;
             setSens( &drvAD, (countAD - drvAD.getCount()) );
             break;
         case 3:
-            vitDC = defVit;
+            vitDC = defVitCherche;
             countDC = drvDC.getCount() - nbCherche;
             setSens( &drvDC, (countDC - drvDC.getCount()) );
             break;
