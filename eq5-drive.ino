@@ -1,4 +1,50 @@
 //------------------------------------------------------------------------------
+//
+//
+//------------------------------------------------------------------------------
+// Liste des commandes
+//------------------------------------------------------------------------------
+//   n   : stop la monture",
+//   g   : Affiche les positions de la monture et son etat",
+//   S   : Active/Desactive le suivi rotation terre",
+//   j   : Active/Desactive le joystick",
+//   M   : Mode relatif/absolu",
+//   m   : Affiche le mode",
+//   r   : Reset des valeurs courantes (asc. droite , declinaison)",
+//   Dx  : Change la vitesse par",
+//          z1, z2, z3, z4",
+//   zx    : Coefficient vitesse joystick",
+//         1x 1/5x 1/10x 1/20x",
+//   Vxxx  : Change la viteese siderale",
+//   exxx  : Change l exponentielle sur le joystick",
+//
+//   xxxx   : Emulation joystick en asc. droite de xxx",
+//   yxxx   : Emulation joystick en declinaison de xxx",
+//    
+//   iaxxx   : Valeur courante en asc. droite de xxx degres",
+//   idxxx   : Valeur courante en declinaison de xxx degres",
+//
+//-mode relatif
+//   axxx    : Deplace la monture de xxx degres en asc. droite",
+//   axxxp   : Deplace la monture de xxx pas    en asc. droite",
+//
+//-mode absolu
+//   Axxx    : Deplace la monture de xxx degres en asc. droite",
+//   Axxxp   : Deplace la monture de xxx pas    en asc. droite",
+//    
+//   dxxx    : Deplace la monture de xxx degres en declinaison",
+//   dxxxp   : Deplace la monture de xxx pas    en declinaison",
+//    
+//   v       : Affiche la vitesse siderale",
+//   vxxx    : Changement de la vitesse par defaut",
+//    
+//   sa      : Change sens en ascension droite",
+//   sd      : Change le sens en declinaison",
+//   sA      : Change sens en ascension droite du joystick ",
+//   sD      : Change sens en declinaison du joystick",
+//
+//   ss      : Change le sens en suivi de rotation",
+//------------------------------------------------------------------------------
 //                               EQ-TEST.INO
 //------------------------------------------------------------------------------
 #define PROTO_ARDUINO   1
@@ -14,7 +60,7 @@
 #define TIMER3          1600        //0.1ms
 //------------------------------------------------------------------------------
 #define PAS_CHERCHE     150
-#define VERSION         "1.0.2"
+#define VERSION         "1.0.4"
 //------------------------------------------------------------------------------
 #define EEPROM_MAGIC0	'#'
 #define EEPROM_MAGIC1	'!'
@@ -60,6 +106,11 @@
 //    ve = 0.09717608 "/s
 //------------------------------------------------------------------------------
 //float   convert =     400000.0;
+//
+//
+//
+
+
 //#define K_CONV          (1.0/86.5*convert)
 
 #define DELTA_PAS       36777.0
@@ -119,7 +170,10 @@ float   pulseRat = 0.0;
 //------------------------------------------------------------------------------
 float   E = -3.0;      //exponentiel du joystick
 long    timeMiliJoy = 0;
-
+//------------------------------------------------------------------------------
+bool	bSimJoy = false;
+int		xSimJoy = 512;
+int		ySimJoy = 512;
 #define JOY_NONE      1
 #define JOY_DC        2
 #define JOY_AD        3
@@ -346,9 +400,10 @@ void setup() {
     drvDC.setSens(false);
     drvAD.setSens(false);
     
+    /*
     drvDC.selPas2();
     drvAD.selPas2();
-
+	*/
 
     pinMode( pinJoyX, INPUT);
     pinMode( pinJoyY, INPUT);
@@ -360,12 +415,18 @@ void setup() {
     vitAD = -1;
     vitDC = -1;
 
-	drvDC.normalRot();
+    drvDC.normalRot();
     drvAD.normalRot();
         
     vitSiderale = (360.0/86164.1)-1.9*(0.09717608/3600);
     pasSideral  = 10000.0 / (DEG2PAS(vitSiderale));
   
+	drvDC.selPas2();
+	drvAD.selPas2();
+	
+	/*
+	defVit = 30	;
+	*/
     readEEPROM();
 }
 //------------------------------------------------------------------------------
@@ -638,6 +699,7 @@ void computeJoyDC(int x)    {
     }
 
     vitDC = computeVit2(x);
+    
     if ( vitDC == -1 )  {
         drvDC.stop();
         //cptDC = 0;
@@ -645,6 +707,7 @@ void computeJoyDC(int x)    {
     else
     {
         if ( vitAD==-1 )        lastJoy = JOY_DC;
+	    vitDC *= zoom;
     }
 }
 //-----------------------------------------------------------------------------
@@ -676,6 +739,7 @@ void computeJoyAD(int y)    {
     }
 
     vitAD = computeVit2(y);
+
     if ( vitAD == -1 )  {
         drvAD.stop();
         //cptAD = 0;
@@ -683,6 +747,7 @@ void computeJoyAD(int y)    {
     else
     {
         if ( vitDC==-1 )    lastJoy = JOY_AD;
+		vitAD *= zoom;
     }
     
     //else
@@ -711,13 +776,25 @@ void loopReadJoystick()    {
     Serial.print( cptMili, DEC );
     Serial.println( " time" );
     #endif
-        
-    int x = analogRead(pinJoyX);
-    int y = analogRead(pinJoyY);
+
+	int x;
+	int y;
+	if ( bSimJoy )	{
+		x = xSimJoy;
+		y = ySimJoy;
+	}
+	else	{
+		x = analogRead(pinJoyX);
+		y = analogRead(pinJoyY);
+	}
 
     #ifdef DEBUG
+    Serial.print( "read " );
     Serial.print( cptMili, DEC );
-    Serial.println( " read" );
+    Serial.print( " x=" );
+    Serial.print( x, DEC );
+    Serial.print( " y=" );
+    Serial.println( y, DEC );
     #endif    
 
     computeJoyDC(x);
@@ -750,7 +827,7 @@ void loopReadJoystick()    {
     #endif
     //if ( x<(512-JEU_JOY) || x>(512+JEU_JOY) )     computeJoyDC(x);
     //if ( y<(512-JEU_JOY) || y>(512+JEU_JOY) )     computeJoyAD(y);
-//#undef DEBUG    
+#undef DEBUG    
 }
 //-----------------------------------------------------------------------------
 //
@@ -964,6 +1041,8 @@ void changeJoy()  {
     Serial.print("Change joy ...");
     if ( bJoy )     Serial.println( "OK" );
     else            Serial.println( "NOK" );
+    if ( !bJoy )	bSimJoy = false;
+    
     bRattrapeJeu = false;
     vitAD = -1;
     vitDC = -1;
@@ -1096,6 +1175,9 @@ void decodeCmd( String s)  {
         }
         break;
 
+    //-------------------------------------------------------------------------
+    // ARRET D'URGENCE
+    //-------------------------------------------------------------------------
     case 'n':
         vitAD = -1;
         vitDC = -1;
@@ -1307,6 +1389,41 @@ void decodeCmd( String s)  {
           chercheSuivant();
         }
         break;
+    //-------------------------------------------------------------------------
+    // Simulation du joystick
+    //-------------------------------------------------------------------------
+    case 'x':
+        i = getNum(&s[1]);
+        bSimJoy = true;
+        if ( i>100)			i = 100;
+        if ( i<-100)		i = -100;
+        xSimJoy = i * 5 + 512;
+
+        /*
+        Serial.print("x_joy=" );
+        Serial.print(xSimJoy,DEC);
+        Serial.println("");
+        */
+        break;
+    //-------------------------------------------------------------------------
+    // Simulation du joystick
+    //-------------------------------------------------------------------------
+    case 'y':
+        i = getNum(&s[1]);
+        bSimJoy = true;
+        if ( i>100)			i = 100;
+        if ( i<-100)		i = -100;
+        ySimJoy = i * 5 + 512;
+
+        /*
+        Serial.print("y_joy=" );
+        Serial.print(ySimJoy,DEC);
+        Serial.println("");
+        */
+        break;
+    //-------------------------------------------------------------------------
+    // Vitesse de deplacement du joystick
+    //-------------------------------------------------------------------------
     case 'z':
         i = getNum(&s[1]);
         if ( i == 1 )        {
@@ -1328,7 +1445,44 @@ void decodeCmd( String s)  {
             Serial.print("1/20x OK !!" );
             Serial.println("");
             zoom = 20.0;
-        }        
+        }
+        else if ( i == 5 )        {
+            Serial.print("1/40x OK !!" );
+            Serial.println("");
+            zoom = 40.0;
+        }
+        else if ( i == 6 )        {
+            Serial.print("1/80x OK !!" );
+            Serial.println("");
+            zoom = 80.0;
+        }
+        else if ( i == 20 )        {
+            Serial.println("SelPas2");
+			drvDC.selPas2();
+			drvAD.selPas2();
+        }
+        else if ( i == 21 )        {
+            Serial.println("SelPas4");
+			drvDC.selPas4();
+			drvAD.selPas4();
+        }
+        else if ( i == 22 )        {
+            Serial.println("SelPas8");
+			drvDC.selPas8();
+			drvAD.selPas8();
+        }
+        else if ( i == 23 )        {
+            Serial.println("SelPas16");
+			drvDC.selPas16();
+			drvAD.selPas16();
+        }
+        else {
+            Serial.print("VitAD : ");
+            Serial.print(vitAD, DEC);
+            Serial.print("   VitDC : ");
+            Serial.print(vitDC, DEC);
+            Serial.println("");
+        }
         break;
     }
 }
