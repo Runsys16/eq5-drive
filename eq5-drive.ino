@@ -4,17 +4,20 @@
 //------------------------------------------------------------------------------
 // Liste des commandes
 //------------------------------------------------------------------------------
-//   n   : stop la monture",
+//   Dx  : Change la vitesse par",
 //   g   : Affiche les positions de la monture et son etat",
-//   S   : Active/Desactive le suivi rotation terre",
 //   j   : Active/Desactive le joystick",
+// j0,j1		
 //   M   : Mode relatif/absolu",
 //   m   : Affiche le mode",
+//   n   : stop la monture",
+//   p   : active/desactive affichage de la position
 //   r   : Reset des valeurs courantes (asc. droite , declinaison)",
-//   Dx  : Change la vitesse par",
 //          z1, z2, z3, z4",
+//   S   : Active/Desactive le suivi rotation terre",
 //   zx    : Coefficient vitesse joystick",
 //         1x 1/5x 1/10x 1/20x",
+//
 //   Vxxx  : Change la viteese siderale",
 //   exxx  : Change l exponentielle sur le joystick",
 //
@@ -23,6 +26,7 @@
 //    
 //   iaxxx   : Valeur courante en asc. droite de xxx degres",
 //   idxxx   : Valeur courante en declinaison de xxx degres",
+//
 //
 //-mode relatif
 //   axxx    : Deplace la monture de xxx degres en asc. droite",
@@ -136,6 +140,7 @@ long    cptDC = 0;
 int     vitDC = -1;
 long    cptAD = 0;
 int     vitAD = -1;
+int		uSelPas = 1;
 //------------------------------------------------------------------------------
 bool    bPrintPos = true   ;
 bool    bJoy = false;
@@ -152,9 +157,6 @@ bool    bSensSideral = false;
 float   vitSiderale = 0.0;
 float   pasSideral  = 0.0;
 float   pulseSideral = 0.0;
-//------------------------------------------------------------------------------
-int     signeJoyAD = 1;
-int     signeJoyDC = 1;
 //------------------------------------------------------------------------------
 bool    bCherche=false;
 int     uCherche=0;
@@ -174,6 +176,10 @@ long    timeMiliJoy = 0;
 bool	bSimJoy = false;
 int		xSimJoy = 512;
 int		ySimJoy = 512;
+int		xJoy = 512;
+int		yJoy = 512;
+int     signeJoyAD = 1;
+int     signeJoyDC = 1;
 #define JOY_NONE      1
 #define JOY_DC        2
 #define JOY_AD        3
@@ -217,13 +223,13 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
 	//---------------------------------------------------------------------------------
 	if ( vitDC != -1 ) {
         if ( !drvDC.getStep() ) {
-            if ( cptDC >= vitDC ) {
+            if ( cptDC >= (vitDC*uSelPas) ) {
                 cptDC = 0;
                 drvDC.step(true);
             }
         }
         else {
-            if ( cptDC >= 4 ) {
+            if ( cptDC >= (4*uSelPas) ) {
                 cptDC = 0;
                 drvDC.step(true);
             }
@@ -237,13 +243,13 @@ ISR(TIMER3_COMPA_vect)										// timer compare interrupt service routine
 	//---------------------------------------------------------------------------------
 	if ( vitAD != -1 ) {
 	    if ( !drvAD.getStep() ) {
-	        if ( cptAD >= vitAD ) {
+	        if ( cptAD >= (vitAD*uSelPas) ) {
 	            cptAD = 0;
 	            drvAD.step(true);
 	        }
         }
         else {
-            if ( cptAD >= 4 ) {
+            if ( cptAD >= (4*uSelPas) ) {
                 cptAD = 0;
                 drvAD.step(true);
             }
@@ -780,13 +786,15 @@ void loopReadJoystick()    {
 	int x;
 	int y;
 	if ( bSimJoy )	{
-		x = xSimJoy;
-		y = ySimJoy;
+		xJoy = x = xSimJoy;
+		yJoy = y = ySimJoy;
 	}
 	else	{
-		x = analogRead(pinJoyX);
-		y = analogRead(pinJoyY);
+		xJoy = x = analogRead(pinJoyX);
+		yJoy = y = analogRead(pinJoyY);
 	}
+
+
 
     #ifdef DEBUG
     Serial.print( "read " );
@@ -894,7 +902,7 @@ void computeSens( A4988* pDrv, long l )  {
 //------------------------------------------------------------------------------
 void printRotJoyAD()  {
     Serial.print("Rotation  Joystick Asc Droite : " );
-    if (signeJoyAD == 1)     Serial.println("normal");
+    if (signeJoyAD == 1)	Serial.println("normal");
     else                    Serial.println("inverse");
 }
 //-----------------------------------------------------------------------------
@@ -902,7 +910,7 @@ void printRotJoyAD()  {
 //------------------------------------------------------------------------------
 void printRotJoyDC()  {
     Serial.print("Rotation Joystick Declinaison : " );
-    if (signeJoyDC == 1)     Serial.println("normal");
+    if (signeJoyDC == 1)	Serial.println("normal");
     else                    Serial.println("inverse");
 }
 
@@ -1036,11 +1044,35 @@ void printInfo()  {
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-void changeJoy()  {
-    bJoy = !bJoy;
-    Serial.print("Change joy ...");
+void changeJoy( bool b)  {
+    
+    if ( bJoy && (yJoy > 1000) )	{
+		signeJoyAD *= -1;
+	    Serial.println("Change signe AD ");
+		return;
+    }
+    if ( bJoy && (yJoy < 10) )	{
+		signeJoyAD *= -1;
+	    Serial.println("Change signe AD ...");
+		return;
+    }
+    if ( bJoy && (xJoy > 1000) )	{
+		signeJoyDC *= -1;
+	    Serial.println("Change signe DC ");
+		return;
+    }
+    if ( bJoy && (xJoy < 10) )	{
+		signeJoyDC *= -1;
+	    Serial.println("Change signe DC ...");
+		return;
+    }
+
+    bJoy = b;
+    Serial.print("Change bJoy = ");
+    
     if ( bJoy )     Serial.println( "OK" );
     else            Serial.println( "NOK" );
+    
     if ( !bJoy )	bSimJoy = false;
     
     bRattrapeJeu = false;
@@ -1048,6 +1080,47 @@ void changeJoy()  {
     vitDC = -1;
     countAD = 0;
     countDC = 0;
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void changeJoy()  {
+    changeJoy( !bJoy );
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void changeRotAD()  {
+    drvAD.changeRot();
+    Serial.print("As droite sens : ");
+    if ( drvAD.getRot() )
+    {
+    	Serial.println("normal");
+    	writeEEPROM(EE_ADR_AD, 1);
+    }
+    else
+    {
+    	Serial.println("inverse");
+    	writeEEPROM(EE_ADR_AD, 0);
+    }
+
+}
+//-----------------------------------------------------------------------------
+//
+//------------------------------------------------------------------------------
+void changeRotDC()  {
+    drvDC.changeRot();
+    Serial.print("Declinaison sens : ");
+    if ( drvDC.getRot() )
+    {
+    	Serial.println("normal");
+    	writeEEPROM(EE_ADR_DC, 1);
+    }
+    else
+    {
+    	Serial.println("inverse");
+    	writeEEPROM(EE_ADR_DC, 0);
+    }
 }
 //-----------------------------------------------------------------------------
 // 400000 pas = 86.5 deg
@@ -1059,12 +1132,6 @@ void decodeCmd( String s)  {
     float f;
     
     switch( cmd )   {
-    case 'j':
-        changeJoy();
-        break;
-    case 'g':
-        printInfo();
-        break;
     //-------------------------------------------------------------------------
     // Changement AD en relatif
     //-------------------------------------------------------------------------
@@ -1127,6 +1194,18 @@ void decodeCmd( String s)  {
         }
         break;
     //-------------------------------------------------------------------------
+    // modifie/affiche la valeur de conversion pas<=>degré
+    //-------------------------------------------------------------------------
+    case 'c':
+        i = getNum(&s[1]);
+        if ( i > 20000 )        {
+            convert = (float)i;
+        }        
+        Serial.print("Convertion (pas / deg) : " );
+        Serial.print( i, DEC );
+        Serial.println("");
+        break;
+    //-------------------------------------------------------------------------
     // Changement DEC en relatif
     //-------------------------------------------------------------------------
     case 'd':
@@ -1174,17 +1253,17 @@ void decodeCmd( String s)  {
             pulseRat = 0.0;
         }
         break;
-
     //-------------------------------------------------------------------------
-    // ARRET D'URGENCE
+    // modifie la valeur de l'expo joystick
     //-------------------------------------------------------------------------
-    case 'n':
-        vitAD = -1;
-        vitDC = -1;
-        countAD = 0;
-        countDC = 0;
-        bCherche = false;
-        Serial.println("--STOP--");
+    case 'e':
+        f = getFloat(&s[1]);
+        if ( i < -100.0 )       break;
+        if ( i >  100.0 )       break;
+        E = f / 10.0;
+        Serial.print( "Exp joystick : " );
+        Serial.print( f, DEC );
+        Serial.println("\%");
         break;
     //-------------------------------------------------------------------------
     // Initialise position monture
@@ -1216,71 +1295,31 @@ void decodeCmd( String s)  {
         }
         break;
     //-------------------------------------------------------------------------
-    // Reset valeur pas 
+    // Joystick
     //-------------------------------------------------------------------------
-    case 'r':
-        drvDC.resetCount();
-        drvAD.resetCount();
-        Serial.println("Reset valeur courante");
+    case 'j':
+        if ( s[1] == 0 )        changeJoy();
+        else
+        if ( s[1] == '1' )      changeJoy(true);
+        else
+        if ( s[1] == '0' )      changeJoy(false);
         break;
     //-------------------------------------------------------------------------
-    // Affiche ou modifie la vitesse de rotation de la terre
+    // Affiche les infos
     //-------------------------------------------------------------------------
-    case 'v':
-        i = getNum(&s[1]);
-        if ( i < 0 )        i = -i;
-        if ( i > 4000 )     i = 4000;
-        if ( i>=6 )         defVit = i;
-        
-        if ( i != 0 )   {        
-            Serial.print("defVit : " );
-            Serial.print( defVit, DEC );
-            Serial.println("");
-        }
-        else    {
-            Serial.print("defVit : " );
-            Serial.print( defVit, DEC );
-            Serial.print(" V. siderale : " );
-            Serial.print( vitSiderale, DEC );
-            Serial.print(" pas sideral : " );
-            Serial.print( pasSideral, DEC );
-            Serial.println("");
-        }
+    case 'g':
+        printInfo();
         break;
     //-------------------------------------------------------------------------
-    // Affiche ou modifie de la variable pasSideral
+    // ARRET D'URGENCE
     //-------------------------------------------------------------------------
-    case 'V':
-        f = getFloat(&s[1]);
-        if ( i < 0.0 )        break;
-        if ( i > 4000.0 )     break;
-        pasSideral = f;
-        Serial.print( pasSideral, DEC );
-        Serial.println("");
-        break;
-    //-------------------------------------------------------------------------
-    // modifie la valeur de l'expo joystick
-    //-------------------------------------------------------------------------
-    case 'e':
-        f = getFloat(&s[1]);
-        if ( i < -100.0 )       break;
-        if ( i >  100.0 )       break;
-        E = f / 10.0;
-        Serial.print( "Exp joystick : " );
-        Serial.print( f, DEC );
-        Serial.println("\%");
-        break;
-    //-------------------------------------------------------------------------
-    // modifie/affiche la valeur de conversion pas<=>degré
-    //-------------------------------------------------------------------------
-    case 'c':
-        i = getNum(&s[1]);
-        if ( i > 20000 )        {
-            convert = (float)i;
-        }        
-        Serial.print("Convertion (pas / deg) : " );
-        Serial.print( i, DEC );
-        Serial.println("");
+    case 'n':
+        vitAD = -1;
+        vitDC = -1;
+        countAD = 0;
+        countDC = 0;
+        bCherche = false;
+        Serial.println("--STOP--");
         break;
     //-------------------------------------------------------------------------
     // Autorise/interdi l'affichage printPos
@@ -1302,6 +1341,14 @@ void decodeCmd( String s)  {
         
         break;
     //-------------------------------------------------------------------------
+    // Reset valeur pas 
+    //-------------------------------------------------------------------------
+    case 'r':
+        drvDC.resetCount();
+        drvAD.resetCount();
+        Serial.println("Reset valeur courante");
+        break;
+    //-------------------------------------------------------------------------
     // Change le sens des deplacements asc droite (sa), declinaison (sd), rotation siderale (ss)
     // et joystick (sA, sD)
     // commande s[a,d,s,A,D]
@@ -1309,34 +1356,10 @@ void decodeCmd( String s)  {
     case 's':
         tt = s[1];
         if ( tt == 'a' )   {
-            drvAD.changeRot();
-            Serial.print("As droite sens : ");
-            if ( drvAD.getRot() )
-            {
-            	Serial.println("normal");
-            	writeEEPROM(EE_ADR_AD, 1);
-            }
-            else
-            {
-            	Serial.println("inverse");
-            	writeEEPROM(EE_ADR_AD, 0);
-            }
-
+        	changeRotAD();
         }
         else  if ( tt == 'd' )   {
-            drvDC.changeRot();
-            Serial.print("Declinaison sens : ");
-            if ( drvDC.getRot() )
-            {
-            	Serial.println("normal");
-            	writeEEPROM(EE_ADR_DC, 1);
-            }
-            else
-            {
-            	Serial.println("inverse");
-            	writeEEPROM(EE_ADR_DC, 0);
-            }
-
+			changeRotDC();
         }
         else  if ( tt == 's' )   {
             bSensSideral = !bSensSideral;
@@ -1376,18 +1399,39 @@ void decodeCmd( String s)  {
 
         break;
     //-------------------------------------------------------------------------
-    // Effectue un carré de rechercher
+    // Affiche ou modifie la vitesse de rotation de la terre
     //-------------------------------------------------------------------------
-    case 'C':
-        if ( bCherche )     { 
-          bCherche = false;
+    case 'v':
+        i = getNum(&s[1]);
+        if ( i < 0 )        i = -i;
+        if ( i > 4000 )     i = 4000;
+        if ( i>=6 )         defVit = i;
+        
+        if ( i != 0 )   {        
+            Serial.print("defVit : " );
+            Serial.print( defVit, DEC );
+            Serial.println("");
         }
-        else  {
-          bCherche = true;
-          uCherche = -1;
-          nbCherche = 0;
-          chercheSuivant();
+        else    {
+            Serial.print("defVit : " );
+            Serial.print( defVit, DEC );
+            Serial.print(" V. siderale : " );
+            Serial.print( vitSiderale, DEC );
+            Serial.print(" pas sideral : " );
+            Serial.print( pasSideral, DEC );
+            Serial.println("");
         }
+        break;
+    //-------------------------------------------------------------------------
+    // Affiche ou modifie de la variable pasSideral
+    //-------------------------------------------------------------------------
+    case 'V':
+        f = getFloat(&s[1]);
+        if ( i < 0.0 )        break;
+        if ( i > 4000.0 )     break;
+        pasSideral = f;
+        Serial.print( pasSideral, DEC );
+        Serial.println("");
         break;
     //-------------------------------------------------------------------------
     // Simulation du joystick
@@ -1449,33 +1493,43 @@ void decodeCmd( String s)  {
         else if ( i == 5 )        {
             Serial.print("1/40x OK !!" );
             Serial.println("");
-            zoom = 40.0;
+            zoom = 400.0;
         }
         else if ( i == 6 )        {
             Serial.print("1/80x OK !!" );
             Serial.println("");
             zoom = 80.0;
         }
-        else if ( i == 20 )        {
+        else if ( i == 100 )        {
+            Serial.println("SelPas");
+			drvDC.selPas2();
+			drvAD.selPas2();
+			uSelPas = 1;
+        }
+        else if ( i == 101 )        {
             Serial.println("SelPas2");
 			drvDC.selPas2();
 			drvAD.selPas2();
+			uSelPas = 2;
         }
-        else if ( i == 21 )        {
+        else if ( i == 102 )        {
             Serial.println("SelPas4");
 			drvDC.selPas4();
 			drvAD.selPas4();
+			uSelPas = 4;
         }
-        else if ( i == 22 )        {
+        else if ( i == 103 )        {
             Serial.println("SelPas8");
 			drvDC.selPas8();
 			drvAD.selPas8();
+			uSelPas = 8;
         }
-        else if ( i == 23 )        {
+        else if ( i == 104 )        {
             Serial.println("SelPas16");
 			drvDC.selPas16();
 			drvAD.selPas16();
-        }
+			uSelPas = 16;
+		}
         else {
             Serial.print("VitAD : ");
             Serial.print(vitAD, DEC);
@@ -1521,11 +1575,12 @@ void loopBtn() {
     lTimeButtonDelay     +=  cptMili - startMiliBtn;
     
     startMiliBtn = cptMili;
-    
-    if ( lTimeButtonDelay < 500 )       return;
+	//--------------------------------------    
+    // Anti-rebond
+    if ( lTimeButtonDelay < 200 )       return;
     lTimeButtonDelay = 0;
 
-    if ( bChangeJoy && lTimeButtonStartDblc>4000 )
+    if ( bChangeJoy && lTimeButtonStartDblc>1000 )
     {
         bChangeJoy = false;
         changeJoy();
@@ -1550,8 +1605,9 @@ void loopBtn() {
         {
             bChangeJoy = false;
             lTimeButtonStartDblc = 0;
-            if ( lastJoy == JOY_AD )    { signeJoyAD *= -1; printRotJoyAD(); }
-            if ( lastJoy == JOY_DC )    { signeJoyDC *= -1; printRotJoyDC(); }
+            //if ( lastJoy == JOY_AD )    { signeJoyAD *= -1; printRotJoyAD(); }
+            //if ( lastJoy == JOY_DC )    { signeJoyDC *= -1; printRotJoyDC(); }
+            changeRotDC();
             Serial.println( "dbl click" );
             bJoy = true;
         }
