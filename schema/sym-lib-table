@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name test-rescue)(type Legacy)(uri ${KIPRJMOD}/test-rescue.lib)(options "")(descr ""))
+  (lib (name schema-rescue)(type Legacy)(uri ${KIPRJMOD}/schema-rescue.lib)(options "")(descr ""))
+)

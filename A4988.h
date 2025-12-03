@@ -34,6 +34,7 @@ class A4988{
         // rotation normal ou inverse
         inline void     changeRot(void)     { bRot = !bRot; }
         inline bool     getRot(void)        { return bRot; }
+        inline void     setRot(bool b)      { bRot = b; }
         inline void     inverseRot(void)    { bRot = false; }
         inline void     normalRot(void)     { bRot = true; }
         // choix du sens de rotation

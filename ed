@@ -1,0 +1,4 @@
+#!/bin/bash
+edition *.h *.txt *.cpp *.ino ./ed
+arduino
+
