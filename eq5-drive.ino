@@ -64,7 +64,11 @@
 #define TIMER3          1600        //0.1ms
 //------------------------------------------------------------------------------
 #define PAS_CHERCHE     150
+<<<<<<< HEAD
 #define VERSION         "1.0.4"
+=======
+#define VERSION         "1.0.6"
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
 //------------------------------------------------------------------------------
 #define EEPROM_MAGIC0	'#'
 #define EEPROM_MAGIC1	'!'
@@ -123,9 +127,12 @@
 
 float   convert =       DELTA_PAS;
 #define K_CONV          (convert/DELTA_DEG)
+// K_CONV = 4633,84182493  pas par degree   
+// precision := 0° 0' 0.77689"
 
 #define DEG2PAS(__d)    (__d*K_CONV)
 #define PAS2DEG(__p)    (__p/(K_CONV))
+
 #define BAUDS           115200
 //-----------------------------------------------------------------------------
 //
@@ -191,7 +198,22 @@ bool    stateJoy = false;
 //------------------------------------------------------------------------------
 void chercheSuivant();
 //------------------------------------------------------------------------------
+typedef union   f_bool
+{
+	uint16_t	u;
 
+	struct  	{
+		bool bRotAD			: 1;
+		bool bRotDC			: 1;
+		bool bRotJoyAD		: 1;
+		bool bRotJoyDC		: 1;
+		bool bRotSiderale	: 1;
+		bool bRetStellar	: 1;
+		bool bJoy			: 1;
+		int	 zero			: 9;
+	}b;
+};
+f_bool		B;
 //------------------------------------------------------------------------------
 //	Routine d'interruption
 //	----------------------
@@ -388,6 +410,11 @@ void readEEPROM()
 	drvDC.setRot( (EEPROM[EE_ADR_DC]==0) ? false: true );
 	bPrintPos =   (EEPROM[EE_ADR_RETOUR]==0) ? false: true;
 	bSuivi    =   (EEPROM[EE_ADR_SUIVI]==0) ? false: true;
+
+	B.b.bRotAD  		= drvAD.getRot();
+	B.b.bRotDC 			= drvDC.getRot();
+	B.b.bRotSiderale	= bSuivi;
+	B.b.bRetStellar		= bPrintPos;
 }
 //------------------------------------------------------------------------------
 //
@@ -434,6 +461,12 @@ void setup() {
 	defVit = 30	;
 	*/
     readEEPROM();
+	if ( signeJoyAD == 1 )		B.b.bRotJoyAD = true;
+	else						B.b.bRotJoyAD = false;
+	if ( signeJoyDC == 1 )		B.b.bRotJoyDC = true;
+	else						B.b.bRotJoyDC = false;
+    
+    B.b.bJoy = bJoy;
 }
 //------------------------------------------------------------------------------
 //
@@ -935,7 +968,7 @@ void printInfoTime()  {
     float f, c;
     float fh, fm, fs;
     int   i, h, m, s;
-    Serial.print("Temps de fonctionnement : " );
+    Serial.print("T : " );
     c = cptMili / 10000.0 / 3600.0;
     fh = c;
     h = fh;
@@ -978,74 +1011,25 @@ void printInfo()  {
     dest_ad = countAD;
     dest_dc = countDC;
 
-    Serial.println("=INFO START");
-    Serial.print( "Version : " );
+    Serial.println("= START");
+    Serial.print( "V : " );
     Serial.println( VERSION );
-    Serial.print( "Asc Dr : " );
-    Serial.print( pasToAd(cad) );
-    Serial.print( " , " );
-    Serial.print( cad, DEC );
-    Serial.print( " (sens " );
-    Serial.print( drvAD.getSens(), DEC );
 
-    Serial.print( ") => " );
-    Serial.print( " dest = " );
-    Serial.print( dest_ad, DEC );
-    Serial.println("");
-
-    Serial.print( "Declin : " );
-    Serial.print( pasToDc(cdc) );
-    Serial.print( " , " );
-    Serial.print( cdc, DEC );
-    Serial.print( " (sens " );
-    Serial.print( drvDC.getSens(), DEC );
-
-    Serial.print( ") => " );
-    Serial.print( " dest = " );
-    Serial.print( dest_dc, DEC );
+    Serial.print( 'W' );
+    Serial.write( (uint16_t)B.u );
     Serial.println( "" );
 
-    Serial.println("");
-    Serial.print("Convertion (pas/deg) : " );
-    Serial.print( convert, DEC );
-    Serial.print("   pas/deg ");
-    Serial.print( K_CONV, DEC );
-    Serial.println("");
-
-    printInfoVitsseSiderale();
-
-    Serial.println("");
-    Serial.print("Rotation Declinaison : " );
-    if (drvDC.getRot())     Serial.println("normal");
-    else                    Serial.println("inverse");
-    Serial.print("Rotation  Asc Droite : " );
-    if (drvAD.getRot())     Serial.println("normal");
-    else                    Serial.println("inverse");
-
-    printRotJoyAD();
-    printRotJoyDC();
-    
-    Serial.println("");
-    Serial.print( "Rotation terre " );
-    printInfoOuiNon( bSuivi );
-    Serial.println("");
-
-    Serial.print( "Retour Stellarium " );
-    printInfoOnOff( bPrintPos );
-    Serial.println("");
-
-    Serial.print( "Joystick " );
-    printInfoOnOff( bJoy );
-    Serial.println("");
-
     printInfoTime();
-    Serial.println("=INFO STOP");
+    
+    
+    Serial.println("= STOP");
 }
 //-----------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
 void changeJoy( bool b)  {
     
+<<<<<<< HEAD
     if ( bJoy && (yJoy > 1000) )	{
 		signeJoyAD *= -1;
 	    Serial.println("Change signe AD ");
@@ -1068,6 +1052,26 @@ void changeJoy( bool b)  {
     }
 
     bJoy = b;
+=======
+    if ( bJoy && ((yJoy > 1000) || (yJoy < 10))	)
+    {
+		signeJoyAD *= -1;
+		if ( signeJoyAD == 1 )		B.b.bRotJoyAD = true;
+		else						B.b.bRotJoyAD = false;
+	    Serial.println("Change signe AD ");
+		return;
+    }
+    if ( bJoy && ((xJoy > 1000) || (xJoy < 10)) )
+    {
+		signeJoyDC *= -1;
+		if ( signeJoyDC == 1 )		B.b.bRotJoyDC = true;
+		else						B.b.bRotJoyDC = false;
+	    Serial.println("Change signe DC ");
+		return;
+    }
+
+    B.b.bJoy = bJoy = b;
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
     Serial.print("Change bJoy = ");
     
     if ( bJoy )     Serial.println( "OK" );
@@ -1097,11 +1101,19 @@ void changeRotAD()  {
     {
     	Serial.println("normal");
     	writeEEPROM(EE_ADR_AD, 1);
+<<<<<<< HEAD
+=======
+    	B.b.bRotAD = true;
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
     }
     else
     {
     	Serial.println("inverse");
     	writeEEPROM(EE_ADR_AD, 0);
+<<<<<<< HEAD
+=======
+    	B.b.bRotAD = false;
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
     }
 
 }
@@ -1115,11 +1127,19 @@ void changeRotDC()  {
     {
     	Serial.println("normal");
     	writeEEPROM(EE_ADR_DC, 1);
+<<<<<<< HEAD
+=======
+    	B.b.bRotDC = true;
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
     }
     else
     {
     	Serial.println("inverse");
     	writeEEPROM(EE_ADR_DC, 0);
+<<<<<<< HEAD
+=======
+    	B.b.bRotDC = false;
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
     }
 }
 //-----------------------------------------------------------------------------
@@ -1296,6 +1316,8 @@ void decodeCmd( String s)  {
         break;
     //-------------------------------------------------------------------------
     // Joystick
+<<<<<<< HEAD
+=======
     //-------------------------------------------------------------------------
     case 'j':
         if ( s[1] == 0 )        changeJoy();
@@ -1324,6 +1346,140 @@ void decodeCmd( String s)  {
     //-------------------------------------------------------------------------
     // Autorise/interdi l'affichage printPos
     //-------------------------------------------------------------------------
+    case 'p':
+        bPrintPos = !bPrintPos;
+        B.b.bRetStellar = bPrintPos;
+        Serial.print("PrintPos : ");
+        if ( bPrintPos )
+        {
+        	Serial.println( "OUI" );
+        	writeEEPROM( EE_ADR_RETOUR, 1 );
+        }
+        else
+        {
+        	Serial.println( "NON" );
+        	writeEEPROM( EE_ADR_RETOUR, 0 );
+        }
+        
+        
+        break;
+    //-------------------------------------------------------------------------
+    // Reset valeur pas 
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
+    //-------------------------------------------------------------------------
+    case 'j':
+        if ( s[1] == 0 )        changeJoy();
+        else
+        if ( s[1] == '1' )      changeJoy(true);
+        else
+        if ( s[1] == '0' )      changeJoy(false);
+        break;
+    //-------------------------------------------------------------------------
+<<<<<<< HEAD
+    // Affiche les infos
+=======
+    // Change le sens des deplacements asc droite (sa), declinaison (sd), rotation siderale (ss)
+    // et joystick (sA, sD)
+    // commande s[a,d,s,A,D]
+    //-------------------------------------------------------------------------
+    case 's':
+        tt = s[1];
+        if ( tt == 'a' )   {
+        	changeRotAD();
+        }
+        else  if ( tt == 'd' )   {
+			changeRotDC();
+        }
+        else  if ( tt == 's' )   {
+            bSensSideral = !bSensSideral;
+            Serial.print("Rotation siderale ");
+            if ( bSensSideral )         Serial.println("horaire");
+            else                        Serial.println("antihoraire");
+        }
+        else  if ( tt == 'A' )   {
+            signeJoyAD *= -1;
+			if ( signeJoyAD == 1 )		B.b.bRotJoyAD = true;
+			else						B.b.bRotJoyAD = false;
+            printRotJoyAD();
+        }
+        else  if ( tt == 'D' )   {
+            signeJoyDC *= -1;
+			if ( signeJoyDC == 1 )		B.b.bRotJoyDC = true;
+			else						B.b.bRotJoyDC = false;
+            printRotJoyDC();
+        }
+        else    {
+            Serial.println("Erreur");
+        }
+        break;
+    //-------------------------------------------------------------------------
+    // Autorise/interdi le suivi de rotation de la terre (rotation siderale)
+    //-------------------------------------------------------------------------
+    case 'S':
+        bSuivi = !bSuivi;
+        B.b.bRotSiderale = bSuivi;
+        Serial.print("Suivi rotation terre : ");
+
+        if ( bSuivi )
+        {
+        	Serial.println( "OUI" );
+        	writeEEPROM( EE_ADR_SUIVI, 1 );
+        }
+        else
+        {
+        	Serial.println( "NON" );
+        	writeEEPROM( EE_ADR_SUIVI, 0 );
+        }
+
+        break;
+    //-------------------------------------------------------------------------
+    // Affiche ou modifie la vitesse de rotation de la terre
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
+    //-------------------------------------------------------------------------
+    case 'g':
+        printInfo();
+        break;
+    //-------------------------------------------------------------------------
+    // ARRET D'URGENCE
+    //-------------------------------------------------------------------------
+<<<<<<< HEAD
+    case 'n':
+        vitAD = -1;
+        vitDC = -1;
+        countAD = 0;
+        countDC = 0;
+        bCherche = false;
+        Serial.println("--STOP--");
+=======
+    case 'V':
+        f = getFloat(&s[1]);
+        if ( i < 0.0 )        break;
+        if ( i > 4000.0 )     break;
+        pasSideral = f;
+        Serial.print( pasSideral, DEC );
+        Serial.println("");
+        break;
+    //-------------------------------------------------------------------------
+    // Simulation du joystick
+    //-------------------------------------------------------------------------
+    case 'x':
+        i = getNum(&s[1]);
+        bSimJoy = true;
+        if ( i>100)			i = 100;
+        if ( i<-100)		i = -100;
+        xSimJoy = i * 5 + 512;
+
+        /*
+        Serial.print("x_joy=" );
+        Serial.print(xSimJoy,DEC);
+        Serial.println("");
+        */
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
+        break;
+    //-------------------------------------------------------------------------
+    // Simulation du joystick
+    //-------------------------------------------------------------------------
+<<<<<<< HEAD
     case 'p':
         bPrintPos = !bPrintPos;
         Serial.print("PrintPos : ");
@@ -1378,10 +1534,25 @@ void decodeCmd( String s)  {
         else    {
             Serial.println("Erreur");
         }
+=======
+    case 'y':
+        i = getNum(&s[1]);
+        bSimJoy = true;
+        if ( i>100)			i = 100;
+        if ( i<-100)		i = -100;
+        ySimJoy = i * 5 + 512;
+
+        /*
+        Serial.print("y_joy=" );
+        Serial.print(ySimJoy,DEC);
+        Serial.println("");
+        */
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
         break;
     //-------------------------------------------------------------------------
-    // Autorise/interdi le suivi de rotation de la terre (rotation siderale)
+    // Vitesse de deplacement du joystick
     //-------------------------------------------------------------------------
+<<<<<<< HEAD
     case 'S':
         bSuivi = !bSuivi;
         Serial.print("Suivi rotation terre : ");
@@ -1468,6 +1639,8 @@ void decodeCmd( String s)  {
     //-------------------------------------------------------------------------
     // Vitesse de deplacement du joystick
     //-------------------------------------------------------------------------
+=======
+>>>>>>> f326a79 (Suppression des echanges non indispensable)
     case 'z':
         i = getNum(&s[1]);
         if ( i == 1 )        {
@@ -1610,6 +1783,7 @@ void loopBtn() {
             changeRotDC();
             Serial.println( "dbl click" );
             bJoy = true;
+            B.b.bJoy = bJoy;
         }
         else
         {
@@ -1626,7 +1800,7 @@ void loopBtn() {
 }
 //-----------------------------------------------------------------------------
 //
-// Envoi la position de la monture 5x par seconde
+// Envoi la position de la monture 10x par seconde
 //
 //------------------------------------------------------------------------------
 long cptPosition = 0;
@@ -1635,7 +1809,7 @@ void printPosition(void)    {
 
     if ( cptPosition < cptMili )    {
         long cad, cdc;
-        cptPosition = cptMili + 2000.0;//10000.0;
+        cptPosition = cptMili + 500.0;//10000.0;
         cad = drvAD.getCount();
         cdc = drvDC.getCount();
         Serial.print("-a");
