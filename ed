@@ -1,4 +1,45 @@
 #!/bin/bash
-edition *.h *.txt *.cpp *.ino ./ed
-arduino
+#------------------------------------------------------------------------------------------
+function test_arduino()
+{
+	FIND=$(pidof arduino-ide)
+	if [ "$FIND" != "" ]
+	then
+		echo $FIND
+		return
+	fi
+
+	echo ""
+}
+#------------------------------------------------------------------------------------------
+function test_gedit()
+{
+	for FILE in $(ls *.h *.txt *.cpp *.ino ./ed)
+	do
+		FIND=$(ps -ef | grep gedit | grep $FILE)
+		if [ "$FIND" != "" ]
+		then
+			echo $FILE
+			return
+		fi
+	done
+	
+	echo ""
+}
+#------------------------------------------------------------------------------------------
+OUVERT=$(test_gedit)
+if [ "$OUVERT" == "" ]
+then
+	edition *.h *.txt *.cpp *.ino ./ed
+else
+	echo Edition ouvert
+fi
+OUVERT=$(test_arduino)
+if [ "$OUVERT" == "" ]
+then
+	arduino
+else
+	echo Arduino ouvert
+fi
+
 
